@@ -12,9 +12,6 @@ buildpacks:
     version: 0.0.2
     sha256: 37242c12d302cf1fdf85361fb5fcc845868c1f574308352c4c83a0ce99e9c99d
 groups:
-  - label: python
-    buildpacks:
-      - id: "org.cloudfoundry.buildpacks.python"
-        version: "latest"
-      - id: "org.cloudfoundry.buildpacks.pip"
-        version: "latest"
+  - buildpacks:
+    - id: "org.cloudfoundry.buildpacks.python"
+    - id: "org.cloudfoundry.buildpacks.pip"

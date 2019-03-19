@@ -16,7 +16,6 @@ type OrderTOML struct {
 }
 
 type CNBGroup struct {
-	Labels     []string       `toml:"labels" yaml:"labels"`
 	Buildpacks []CNBBuildpack `toml:"buildpacks" yaml:"buildpacks"`
 }
 

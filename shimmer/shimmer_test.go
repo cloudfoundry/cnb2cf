@@ -51,7 +51,6 @@ func testShimmerUnit(t *testing.T, when spec.G, it spec.S) {
 					CFStacks: []string{"some-stack"},
 				}},
 				Groups: []shimmer.CNBGroup{{
-					Labels: []string{"some-language"},
 					Buildpacks: []shimmer.CNBBuildpack{{
 						ID: "some-cnb-id",
 					}},
@@ -105,7 +104,6 @@ func testShimmerUnit(t *testing.T, when spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 			orderTOML := shimmer.OrderTOML{}
 			Expect(toml.Unmarshal(contents, &orderTOML)).To(Succeed())
-			Expect(orderTOML.Groups[0].Labels).To(Equal([]string{"some-language"}))
 			Expect(orderTOML.Groups[0].Buildpacks).To(Equal([]shimmer.CNBBuildpack{{ID: "some-cnb-id", Version: "latest"}}))
 		})
 	}, spec.Random())
