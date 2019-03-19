@@ -1,14 +1,13 @@
 package integration_test
 
 import (
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"github.com/cloudfoundry/libbuildpack/cutlass"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
-	"github.com/cloudfoundry/shim-generator/buildpack"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -18,79 +17,66 @@ func TestIntegration(t *testing.T) {
 	spec.Run(t, "Integration", testIntegration, spec.Report(report.Terminal{}))
 }
 
+func runCLI(args ...string) (string, error) {
+	binary := filepath.Join("..", "build", "cnb2cf")
+	cmd := exec.Command(binary, args...)
+	output, err := cmd.CombinedOutput()
+	return string(output), err
+}
+
 func testIntegration(t *testing.T, when spec.G, it spec.S) {
+	var (
+		configFile string
+	)
+
 	it.Before(func() {
 		RegisterTestingT(t)
 	})
-	when("binary created", func() {
-		it("exists", func() {
-			Expect("../shimmer").To(BeAnExistingFile())
-		})
+
+	it("exits with an error if wrong number of args given", func() {
+		output, err := runCLI()
+		Expect(err).To(HaveOccurred())
+		Expect(string(output)).To(ContainSubstring("Wrong number of arguments, expected 1 got 0"))
 	})
 
-	when("we run shimmer", func() {
+	it("exits with an error with bad config file", func() {
+		configFile = filepath.Join("testdata", "config", "bad-shim.yml")
+		output, err := runCLI(configFile)
+		Expect(err).To(HaveOccurred())
+		Expect(string(output)).To(ContainSubstring("config error"))
+	})
+
+	when("successfully running the cli", func() {
 		var (
-			tempDir string
-			err     error
+			bpName string
+			app *cutlass.App
+			shimmedBPFile string
 		)
 
 		it.Before(func() {
-			tempDir, err = ioutil.TempDir("", "")
-			Expect(err).ToNot(HaveOccurred())
+			configFile = filepath.Join("testdata", "config", "shim.yml")
+			bpName = "shimmed_python_" + cutlass.RandStringRunes(5)
+
+			shimmedBPFile = "python_buildpack-cflinuxfs3-1.0.0.zip"
+
+			app = cutlass.New(filepath.Join("testdata", "python_app"))
+			app.Buildpacks = []string{bpName+"_buildpack"}
 		})
 
-		it.After(func() {
-			Expect(os.RemoveAll(tempDir)).To(Succeed())
+		it.After(func(){
+			app.Destroy()
+			cutlass.DeleteBuildpack(bpName)
+			os.Remove(shimmedBPFile)
 		})
 
-		it("creates a directory with the name of the first argument", func() {
-			cmd := exec.Command(filepath.Join("..", "shimmer"), filepath.Join("..", "template"), filepath.Join(tempDir, "new-shim"), "testdata")
-			_, err := cmd.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(filepath.Join(tempDir, "new-shim")).To(BeADirectory())
-		})
+		it("creates a runnable v2 shimmed buildpack", func() {
+			output, err := runCLI(configFile)
+			Expect(err).NotTo(HaveOccurred(), string(output))
+			Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
 
-		it("exits with an error if wrong number of args given", func() {
-			cmd := exec.Command(filepath.Join("..", "shimmer"), filepath.Join("..", "template"), filepath.Join(tempDir, "new-shim"))
-			output, err := cmd.CombinedOutput()
-			Expect(err).To(HaveOccurred())
-			Expect(string(output)).To(ContainSubstring("Wrong number of args"))
-		})
-
-		//it("copies over the v2 shim template into the given directory", func() {
-		//	cmd := exec.Command(filepath.Join("..", "shimmer"), filepath.Join(tempDir, "new-shim"))
-		//	_, err := cmd.CombinedOutput()
-		//	Expect(err).NotTo(HaveOccurred())
-		//
-		//	newDirChecksum := md5.Sum([]byte(filepath.Join(tempDir, "new-shim")))
-		//	templateDirChecksum := md5.Sum([]byte(filepath.Join("..", "template")))
-		//
-		//	Expect(newDirChecksum).To(Equal(templateDirChecksum))
-		//})
-
-		it("copies over files from the v2 shim template", func() {
-			cmd := exec.Command(filepath.Join("..", "shimmer"), filepath.Join("..", "template"), filepath.Join(tempDir, "new-shim"), "testdata")
-			_, err := cmd.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(filepath.Join(tempDir, "new-shim", "bin")).To(BeADirectory())
-			Expect(filepath.Join(tempDir, "new-shim", "scripts")).To(BeADirectory())
-			Expect(filepath.Join(tempDir, "new-shim", "manifest.yml")).To(BeAnExistingFile())
-			Expect(filepath.Join(tempDir, "new-shim", "order.toml")).To(BeAnExistingFile())
-		})
-
-		it("modifies the manifest.yml with the cnb buildpack name", func() {
-			cmd := exec.Command(filepath.Join("..", "shimmer"), filepath.Join("..", "template"), filepath.Join(tempDir, "new-shim"), "testdata")
-			_, err := cmd.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			contents, err := ioutil.ReadFile(filepath.Join(tempDir, "new-shim", "manifest.yml"))
-			Expect(contents).NotTo(BeEmpty())
-			manifest := buildpack.Manifest{}
-			Expect(yaml.Unmarshal(contents, &manifest)).To(Succeed())
-			deps := manifest["dependencies"].([]interface{})
-			firstDep := deps[0]
-			depName := firstDep.(map[interface{}]interface{})["name"]
-
-			Expect(depName).To(Equal("test-cnb-buildpack"))
+			Expect(app.Push()).To(Succeed())
+			Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
+			Expect(app.GetBody("/")).To(Equal("Hello, World!"))
 		})
 	})
 }
