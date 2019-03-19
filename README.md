@@ -1,5 +1,5 @@
 # cnb2cf
-A tool to convert Cloud Native Buildpacks (CNB's) (link here) to a single Cloudfoundry Buildpack
+A tool to convert [Cloud Native Buildpacks](https://buildpacks.io/) (CNB's) to a single Cloudfoundry Buildpack
 
 ## Installation
 
@@ -36,14 +36,14 @@ The config is a `.yml` file as the first argument and outputs a buildpack with t
   - `version` The CNB `version` found in the `order.toml`
   - `uri` A remote uri path to the cnb `tgz` archive eg. `S3`
   - `sha256` The sha256 of the `tgz` archive
-- `groups` This is analogous to the `order.toml` in the v3 buildpack spec(LINKHERE) sans the CNB `version` which is not required
+- `groups` This is analogous to the `order.toml` in the [v3 buildpack spec](https://github.com/buildpack/spec/blob/master/platform.md) sans the CNB `version` which is not required
 
 **Note**
 `groups` defines how to run the CNB's so all CNB's in `groups` **must** exist in the `buildpacks` section
 
 **Example shim.yml**
 
-This example config creates a buildpack using the python-cnb(link) and pip-cnb(link) Buildpacks
+This example config creates a CF buildpack using the [python](https://github.com/cloudfoundry/python-cnb) and [pip](https://github.com/cloudfoundry/pip-cnb) Cloud Native Buildpacks
 
 ```
 ---
