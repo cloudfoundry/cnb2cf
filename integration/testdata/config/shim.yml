@@ -1,0 +1,20 @@
+---
+language: python
+stack: cflinuxfs3
+version: 1.0.0
+buildpacks:
+  - name: org.cloudfoundry.buildpacks.python
+    version: 0.0.2
+    uri: https://github.com/cloudfoundry/python-cnb/releases/download/v0.0.2/python-cnb-0.0.2.tgz
+    sha256: 9a808c86c83c9bb42ec6e1ff3c005761b26ed4833f8f37bf282258839fc794a6
+  - name: org.cloudfoundry.buildpacks.pip
+    uri: https://github.com/cloudfoundry/pip-cnb/releases/download/v0.0.2/pip-cnb-0.0.2.tgz
+    version: 0.0.2
+    sha256: 37242c12d302cf1fdf85361fb5fcc845868c1f574308352c4c83a0ce99e9c99d
+groups:
+  - label: python
+    buildpacks:
+      - id: "org.cloudfoundry.buildpacks.python"
+        version: "latest"
+      - id: "org.cloudfoundry.buildpacks.pip"
+        version: "latest"
