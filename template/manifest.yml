@@ -1,40 +1,23 @@
-language: nodejs
+---
 include_files:
-- bin/compile
-- bin/detect
-- bin/finalize
-- bin/release
-- bin/supply
-- order.toml
-- manifest.yml
+  - bin/compile
+  - bin/detect
+  - bin/finalize
+  - bin/release
+  - bin/supply
+  - order.toml
+  - manifest.yml
+  - VERSION
 dependencies:
-- name: org.cloudfoundry.buildpacks.nodejs
-  version: 0.0.4
-  cf_stacks:
-  - cflinuxfs2
-  - cflinuxfs3
-  source: https://github.com/cloudfoundry/nodejs-cnb/releases/download/v0.0.4/nodejs-cnb-0.0.4.tgz
-  source_sha256: 2c85f3bd8b5e1fc4da91650c0e5ae528e20ddd2ab0d068ed54370ca56c2bc24c
-- name: v3-builder
-  version: 0.0.2
-  uri: https://buildpacks.cloudfoundry.org/dependencies/v3-builder/v3-builder-00b2a143-56e4f99a.tgz
-  sha256: 56e4f99ae1afa943b02752ed92a7ff0c8340b6522969c8566c5dfda3dda4cd2d
-  cf_stacks:
-  - cflinuxfs2
-  - cflinuxfs3
-- name: v3-detector
-  version: 0.0.2
-  uri: https://buildpacks.cloudfoundry.org/dependencies/v3-detector/v3-detector-00b2a143-9f244b69.tgz
-  sha256: 9f244b6994c53d5c6d3d19025e8d9a1cf57b7f8a1a8c68940d8e3d5a284c17d9
-  cf_stacks:
-  - cflinuxfs2
-  - cflinuxfs3
-- name: v3-launcher
-  version: 0.0.2
-  uri: https://buildpacks.cloudfoundry.org/dependencies/v3-launcher/v3-launcher-00b2a143-53adf744.tgz
-  sha256: 53adf744891b06ca122a966e5f08f73826d5a9de7d97837e4460ad3a99aa7c77
-  cf_stacks:
-  - cflinuxfs2
-  - cflinuxfs3
-pre_package: scripts/build.sh
-default_versions: []
+  - name: v3-builder
+    version: 0.0.2
+    uri: https://buildpacks.cloudfoundry.org/dependencies/v3-builder/v3-builder-00b2a143-56e4f99a.tgz
+    sha256: 56e4f99ae1afa943b02752ed92a7ff0c8340b6522969c8566c5dfda3dda4cd2d
+  - name: v3-detector
+    version: 0.0.2
+    uri: https://buildpacks.cloudfoundry.org/dependencies/v3-detector/v3-detector-00b2a143-9f244b69.tgz
+    sha256: 9f244b6994c53d5c6d3d19025e8d9a1cf57b7f8a1a8c68940d8e3d5a284c17d9
+  - name: v3-launcher
+    version: 0.0.2
+    uri: https://buildpacks.cloudfoundry.org/dependencies/v3-launcher/v3-launcher-00b2a143-53adf744.tgz
+    sha256: 53adf744891b06ca122a966e5f08f73826d5a9de7d97837e4460ad3a99aa7c77
