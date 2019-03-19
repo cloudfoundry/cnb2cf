@@ -1,12 +1,13 @@
 package integration_test
 
 import (
-	"github.com/cloudfoundry/libbuildpack/cutlass"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/cloudfoundry/libbuildpack/cutlass"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
@@ -48,8 +49,8 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 	when("successfully running the cli", func() {
 		var (
-			bpName string
-			app *cutlass.App
+			bpName        string
+			app           *cutlass.App
 			shimmedBPFile string
 		)
 
@@ -60,10 +61,10 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			shimmedBPFile = "python_buildpack-cflinuxfs3-1.0.0.zip"
 
 			app = cutlass.New(filepath.Join("testdata", "python_app"))
-			app.Buildpacks = []string{bpName+"_buildpack"}
+			app.Buildpacks = []string{bpName + "_buildpack"}
 		})
 
-		it.After(func(){
+		it.After(func() {
 			app.Destroy()
 			cutlass.DeleteBuildpack(bpName)
 			os.Remove(shimmedBPFile)
