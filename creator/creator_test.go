@@ -1,13 +1,15 @@
-package shimmer_test
+package creator_test
 
 import (
+	"archive/zip"
+	"github.com/cloudfoundry/cnb2cf/metadata"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/cnb2cf/shimmer"
+	"github.com/cloudfoundry/cnb2cf/creator"
 	"gopkg.in/yaml.v2"
 
 	. "github.com/onsi/gomega"
@@ -15,13 +17,13 @@ import (
 	"github.com/sclevine/spec/report"
 )
 
-func TestShimmerUnit(t *testing.T) {
-	spec.Run(t, "ShimmerUnit", testShimmerUnit, spec.Report(report.Terminal{}))
+func TestCreatorUnit(t *testing.T) {
+	spec.Run(t, "CreatorUnit", testCreatorUnit, spec.Report(report.Terminal{}))
 }
 
-func testShimmerUnit(t *testing.T, when spec.G, it spec.S) {
+func testCreatorUnit(t *testing.T, when spec.G, it spec.S) {
 	var (
-		cfg     shimmer.Config
+		cfg     creator.Config
 		tempDir string
 		err     error
 	)
@@ -37,27 +39,27 @@ func testShimmerUnit(t *testing.T, when spec.G, it spec.S) {
 		Expect(os.RemoveAll(tempDir)).To(Succeed())
 	})
 
-	when("with valid args", func() {
+	when("CreateBuildpack", func() {
 		it.Before(func() {
-			cfg = shimmer.Config{
+			cfg = creator.Config{
 				Language: "some-language",
 				Version:  "some-v2-version",
 				Stack:    "some-stack",
-				Buildpacks: []shimmer.V2Dependency{{
+				Buildpacks: []metadata.V2Dependency{{
 					Name:     "some-cnb-id",
 					URI:      "some-uri",
 					SHA256:   "some-sha",
 					Version:  "some-version",
 					CFStacks: []string{"some-stack"},
 				}},
-				Groups: []shimmer.CNBGroup{{
-					Buildpacks: []shimmer.CNBBuildpack{{
+				Groups: []metadata.CNBGroup{{
+					Buildpacks: []metadata.CNBBuildpack{{
 						ID: "some-cnb-id",
 					}},
 				}},
 			}
 
-			Expect(shimmer.CreateBuildpack(cfg, tempDir)).To(Succeed())
+			Expect(creator.CreateBuildpack(cfg, tempDir)).To(Succeed())
 		})
 		it("copies over files from the v2 shim template", func() {
 			Expect(filepath.Join(tempDir, "bin")).To(BeADirectory())
@@ -75,7 +77,7 @@ func testShimmerUnit(t *testing.T, when spec.G, it spec.S) {
 		it("creates a manifest.yml", func() {
 			contents, err := ioutil.ReadFile(filepath.Join(tempDir, "manifest.yml"))
 			Expect(err).NotTo(HaveOccurred())
-			manifest := shimmer.ManifestYAML{}
+			manifest := metadata.ManifestYAML{}
 			Expect(yaml.Unmarshal(contents, &manifest)).To(Succeed())
 			Expect(manifest.Language).To(Equal("some-language"))
 			Expect(manifest.Stack).To(Equal("some-stack"))
@@ -102,9 +104,60 @@ func testShimmerUnit(t *testing.T, when spec.G, it spec.S) {
 		it("generates an order.toml", func() {
 			contents, err := ioutil.ReadFile(filepath.Join(tempDir, "order.toml"))
 			Expect(err).NotTo(HaveOccurred())
-			orderTOML := shimmer.OrderTOML{}
+			orderTOML := metadata.OrderTOML{}
 			Expect(toml.Unmarshal(contents, &orderTOML)).To(Succeed())
-			Expect(orderTOML.Groups[0].Buildpacks).To(Equal([]shimmer.CNBBuildpack{{ID: "some-cnb-id", Version: "latest"}}))
+			Expect(orderTOML.Groups[0].Buildpacks).To(Equal([]metadata.CNBBuildpack{{ID: "some-cnb-id", Version: "latest"}}))
+		})
+	}, spec.Random())
+
+	when("CreateZip", func() {
+		var (
+			bpDir, tempDir string
+			config         creator.Config
+			err            error
+		)
+
+		it.Before(func() {
+			RegisterTestingT(t)
+
+			tempDir, err = ioutil.TempDir("", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			config = creator.Config{
+				Language: "some-language",
+				Version:  "1.1.1",
+				Stack:    "cflinuxfs3",
+			}
+
+			bpDir = "testdata"
+		})
+
+		it.After(func() {
+			os.RemoveAll(tempDir)
+		})
+
+		it("creates the buildpack zip", func() {
+			Expect(creator.CreateZip(config, bpDir, tempDir)).To(Succeed())
+			r, err := zip.OpenReader(filepath.Join(tempDir, "some-language_buildpack-cflinuxfs3-1.1.1.zip"))
+			Expect(err).NotTo(HaveOccurred())
+
+			defer r.Close()
+
+			fileNames := []string{}
+			for _, f := range r.File {
+				fileNames = append(fileNames, f.Name)
+			}
+
+			Expect(fileNames).To(ConsistOf([]string{
+				"VERSION",
+				"bin/compile",
+				"bin/detect",
+				"bin/finalize",
+				"bin/release",
+				"bin/supply",
+				"manifest.yml",
+				"order.toml",
+			}))
 		})
 	}, spec.Random())
 }

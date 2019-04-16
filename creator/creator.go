@@ -1,11 +1,18 @@
-package shimmer
+package creator
 
 import (
+	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/cloudfoundry/cnb2cf/utils"
+
+	"github.com/cloudfoundry/cnb2cf/metadata"
 
 	"github.com/BurntSushi/toml"
 	_ "github.com/cloudfoundry/cnb2cf/statik"
@@ -24,6 +31,11 @@ func CreateBuildpack(cfg Config, outputDir string) error {
 	}
 
 	return generateOrderTOML(cfg, outputDir)
+}
+
+func CreateZip(config Config, srcDir, outputDir string) error {
+	bpZip := filepath.Join(outputDir, fmt.Sprintf("%s_buildpack-%s-%s.zip", config.Language, config.Stack, config.Version))
+	return zipFiles(srcDir, bpZip)
 }
 
 func writeVersion(version, outputDir string) error {
@@ -58,7 +70,7 @@ func copyTemplate(cfg Config, outputDir string) error {
 			srcFile, err = updateManifest(cfg, srcFile)
 		}
 
-		return writeToFile(srcFile, filepath.Join(outputDir, path), 0777)
+		return utils.WriteToFile(srcFile, filepath.Join(outputDir, path), 0777)
 	}); err != nil {
 		return err
 	}
@@ -67,7 +79,7 @@ func copyTemplate(cfg Config, outputDir string) error {
 }
 
 func updateManifest(cfg Config, file io.Reader) (io.Reader, error) {
-	manifest := ManifestYAML{}
+	manifest := metadata.ManifestYAML{}
 	if err := yaml.NewDecoder(file).Decode(&manifest); err != nil {
 		return nil, err
 	}
@@ -84,7 +96,7 @@ func updateManifest(cfg Config, file io.Reader) (io.Reader, error) {
 }
 
 func generateOrderTOML(cfg Config, outputDir string) error {
-	orderTOML := OrderTOML{
+	orderTOML := metadata.OrderTOML{
 		Groups: cfg.Groups,
 	}
 
@@ -103,22 +115,48 @@ func generateOrderTOML(cfg Config, outputDir string) error {
 	return toml.NewEncoder(orderTOMLFile).Encode(orderTOML)
 }
 
-func writeToFile(source io.Reader, destFile string, mode os.FileMode) error {
-	err := os.MkdirAll(filepath.Dir(destFile), 0755)
+func zipFiles(srcDir, filename string) error {
+	newfile, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
+	defer newfile.Close()
 
-	fh, err := os.OpenFile(destFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, mode)
-	if err != nil {
+	zipWriter := zip.NewWriter(newfile)
+	defer zipWriter.Close()
+
+	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		header.Name = filepath.Join(".", strings.TrimPrefix(path, srcDir))
+		header.Method = zip.Deflate
+
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		_, err = io.Copy(writer, file)
 		return err
-	}
-	defer fh.Close()
-
-	_, err = io.Copy(fh, source)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	})
 }

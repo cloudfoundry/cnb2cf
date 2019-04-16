@@ -1,9 +1,10 @@
-package shimmer_test
+package creator_test
 
 import (
+	"github.com/cloudfoundry/cnb2cf/metadata"
 	"testing"
 
-	"github.com/cloudfoundry/cnb2cf/shimmer"
+	"github.com/cloudfoundry/cnb2cf/creator"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
@@ -27,36 +28,36 @@ func testConfigUnit(t *testing.T, when spec.G, it spec.S) {
 
 	when("ValidateConfig", func() {
 		it("passes with good config", func() {
-			cfg := shimmer.Config{
+			cfg := creator.Config{
 				Language: "some-language",
 				Version:  "some-version",
 				Stack:    "some-stack",
-				Buildpacks: []shimmer.V2Dependency{{
+				Buildpacks: []metadata.V2Dependency{{
 					Name: "some-cnb",
 				}},
-				Groups: []shimmer.CNBGroup{{
-					Buildpacks: []shimmer.CNBBuildpack{{
+				Groups: []metadata.CNBGroup{{
+					Buildpacks: []metadata.CNBBuildpack{{
 						ID: "some-cnb",
 					}},
 				}},
 			}
-			Expect(shimmer.ValidateConfig(cfg)).To(Succeed())
+			Expect(creator.ValidateConfig(cfg)).To(Succeed())
 		})
 		it("errors when the buildpack IDs don't match", func() {
-			cfg := shimmer.Config{
+			cfg := creator.Config{
 				Language: "some-language",
 				Version:  "some-version",
 				Stack:    "some-stack",
-				Buildpacks: []shimmer.V2Dependency{{
+				Buildpacks: []metadata.V2Dependency{{
 					Name: "some-cnb",
 				}},
-				Groups: []shimmer.CNBGroup{{
-					Buildpacks: []shimmer.CNBBuildpack{{
+				Groups: []metadata.CNBGroup{{
+					Buildpacks: []metadata.CNBBuildpack{{
 						ID: "some-OTHER-cnb",
 					}},
 				}},
 			}
-			Expect(shimmer.ValidateConfig(cfg).Error()).To(ContainSubstring("buildpack name some-cnb does not exist in any groups"))
+			Expect(creator.ValidateConfig(cfg).Error()).To(ContainSubstring("buildpack name some-cnb does not exist in any groups"))
 		})
 	})
 }

@@ -1,7 +1,8 @@
-package shimmer
+package creator
 
 import (
 	"fmt"
+	"github.com/cloudfoundry/cnb2cf/metadata"
 	"io/ioutil"
 
 	"github.com/pkg/errors"
@@ -9,11 +10,11 @@ import (
 )
 
 type Config struct {
-	Language   string         `yaml:"language"`
-	Version    string         `yaml:"version"`
-	Stack      string         `yaml:"stack"`
-	Buildpacks []V2Dependency `yaml:"buildpacks"`
-	Groups     []CNBGroup     `yaml:"groups"`
+	Language   string                  `yaml:"language"`
+	Version    string                  `yaml:"version"`
+	Stack      string                  `yaml:"stack"`
+	Buildpacks []metadata.V2Dependency `yaml:"buildpacks"`
+	Groups     []metadata.CNBGroup     `yaml:"groups"`
 }
 
 func LoadConfig(path string) (Config, error) {

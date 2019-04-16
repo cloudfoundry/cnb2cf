@@ -1,0 +1,28 @@
+---
+language: some-language
+include_files:
+  - CHANGELOG
+  - CONTRIBUTING.md
+  - ISSUE_TEMPLATE
+  - LICENSE
+  - NOTICE
+  - PULL_REQUEST_TEMPLATE
+  - README.md
+  - VERSION
+  - bin/compile
+  - bin/detect
+  - bin/finalize
+  - bin/release
+  - bin/supply
+  - order.toml
+  - manifest.yml
+dependencies:
+  - name: org.cloudfoundry.buildpacks.some-language
+    version: 0.0.1
+    uri: some-uri
+    sha256: some-sha
+    cf_stacks:
+      - some-stack1
+    source: some-source
+    source_sha256: some-source-sha
+pre_package: scripts/build.sh
