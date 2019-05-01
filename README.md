@@ -1,5 +1,5 @@
 # cnb2cf
-A tool to convert [Cloud Native Buildpacks](https://buildpacks.io/) (CNB's) to a single Cloudfoundry Buildpack
+A tool to convert [Cloud Native Buildpacks](https://buildpacks.io/) (CNBs) to a single Cloud Foundry Buildpack
 
 ## Installation
 
@@ -7,42 +7,53 @@ A tool to convert [Cloud Native Buildpacks](https://buildpacks.io/) (CNB's) to a
 - Go 1.11+
 
 ```
-git clone https://github.com/cloudfoundry/cnb2cf
-cd cnb2cf
-scripts/build.sh
+$ git clone https://github.com/cloudfoundry/cnb2cf
+$ cd cnb2cf
+$ ./scripts/build.sh
 ```
 
-binary can be found in `build` dir
+The binary (`cnb2cf`) can be found in the `build` dir.
 
 ## Usage
+There are two cases when using this tool:
 
-```
-$ cnb2cf shim.yml
-```
+1. Create a shimmed buildpack `.zip` file from a `<config>.yml` configuration file (described below). **This is the recommmended path for most users.**  
 
-Where `shim.yml` specifies the buildpacks, the order they will run in and some additional metadata. 
+      ```
+      $ cnb2cf create -config <path to config file>.yml
+      ```
+
+1. Create a packaged shimmed buildpack `.zip` file from inside a shimmed buildpack's root directory. **This is only recommended if you are already shimming your buildpack to take care of specific edge cases.** 
+      ```
+      $ cnb2cf package -stack <stack> [-cached] [-version <version>] [-cachedir <path to cachedir>]
+      ```      
+
+_Note there is some overlap between these two use cases._
+
+The output of both commands is a buildpack `.zip` file in the current directory, with the name `<language>_buildpack[-<cached>]-<stack>-<version>.zip`. That zip file can be then uploaded to Cloud Foundry by running
+```
+cf create-buildpack my_buildpack python_buildpack-cflinuxfs3-1.0.0.zip 10
+```
 
 ## Config
+The config is a `.yml` file which specifies the buildpacks, the order they will run in, and some additional metadata. 
 
-The config is a `.yml` file as the first argument and outputs a buildpack with the name `<language>_buildpack-<stack>-<version>.zip`
-
-### Config file keys:
-
-- `language` The language of the resulting CF Buildpack
-- `stack` The CF stack the CNB's run on eg. `cflinuxfs3`
-- `version` The version given to the resulting CF Buildpack
-- `buildpacks` The CNB's to package together in the resulting CF Buildpack
-  - `name` The CNB `id` found in the `order.toml`
-  - `version` The CNB `version` found in the `order.toml`
-  - `uri` A remote uri path to the cnb `tgz` archive eg. `S3`
-  - `sha256` The sha256 of the `tgz` archive
-- `groups` This is analogous to the `order.toml` in the [v3 buildpack spec](https://github.com/buildpack/spec/blob/master/platform.md) sans the CNB `version` which is not required
+### Config keys:
+- `language` &rarr; The language of the resulting CF Buildpack
+- `stack` &rarr; The CF stack the CNBs run on eg. `cflinuxfs3`
+- `version` &rarr; The version given to the resulting CF Buildpack
+- `buildpacks` &rarr; The CNBs to package together in the resulting CF Buildpack
+  - `name` &rarr; The CNB `id` found in its `order.toml`
+  - `version` &rarr; The CNB `version` found in its `order.toml`
+  - `uri` &rarr; A remote uri path to the cnb `tgz` archive eg. `S3`
+  - `sha256` &rarr; The sha256 of the `tgz` archive
+- `groups` &rarr; This is analogous to the `order.toml` in the [v3 buildpack spec](https://github.com/buildpack/spec/blob/master/platform.md) sans the CNB `version` which is not required
 
 **Note**
-`groups` defines how to run the CNB's so all CNB's in `groups` **must** exist in the `buildpacks` section
 
-**Example shim.yml**
+`groups` defines how to run the CNBs, so all CNBs in `groups` **must** exist in the `buildpacks` section
 
+### Example <config>.yml
 This example config creates a CF buildpack using the [python](https://github.com/cloudfoundry/python-cnb) and [pip](https://github.com/cloudfoundry/pip-cnb) Cloud Native Buildpacks
 
 ```
@@ -65,8 +76,13 @@ groups:
       - id: "org.cloudfoundry.buildpacks.pip"
 ```
 
-Results in a buildpack as a `.zip` file in the current directory which can be uploaded to Cloud Foundry
+### Simple Workflow Example
 
+A simple example workflow using the config file above named `shim.yml`:
 ```
-cf create-buildpack my_buildpack python_buildpack-cflinuxfs3-1.0.0.zip 10
+$ cnb2cf create -config shim.yml
+# the above produces python_buildpack-cflinuxfs3-1.0.0.zip
+
+# then upload to Cloud Foundry using the cf cli
+$ cf create-buildpack my_shimmed_buildpack python_buildpack-cflinuxfs3-1.0.0.zip 1
 ```
