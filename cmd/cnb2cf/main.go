@@ -137,7 +137,12 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 			return subcommands.ExitFailure
 		}
 
-		if err := packager.UpdateDependency(&d, filepath.Join(buildDir, d.Name+".tgz")); err != nil {
+		currentDepName := d.Name
+		if p.cached {
+			currentDepName += "-cached"
+		}
+
+		if err := packager.UpdateDependency(&d, filepath.Join(buildDir, currentDepName + ".tgz")); err != nil {
 			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}

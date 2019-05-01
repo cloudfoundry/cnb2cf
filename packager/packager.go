@@ -44,15 +44,15 @@ func BuildCNB(extractDir, outputDir string, cached bool) error {
 		return err
 	}
 
-	packager, err := cnbpackager.New(foundSrc, outputDir, cached)
+	packager, err := cnbpackager.New(foundSrc, outputDir)
 	if err != nil {
 		return err
 	}
 
-	if err := packager.Create(); err != nil {
+	if err := packager.Create(cached); err != nil {
 		return err
 	}
-	return packager.Archive()
+	return packager.Archive(cached)
 }
 
 // FindCNB returns the path to the cnb source if it can find a single buildpack.toml
