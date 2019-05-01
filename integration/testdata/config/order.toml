@@ -1,0 +1,6 @@
+[[groups]]
+  labels = [ "python" ]
+  buildpacks = [
+    {id = "org.cloudfoundry.buildpacks.python",         version = "latest" },
+    {id = "org.cloudfoundry.buildpacks.pip",            version = "latest" }
+  ]

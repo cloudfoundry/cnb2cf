@@ -8,7 +8,10 @@ type BuildpackTOML struct {
 		Mixins      []string `toml:"mixins"`
 		BuildImages []string `toml:"build-images"`
 		RunImages   []string `toml:"run-images"`
+
+
 	} `toml:"stacks"`
+
 }
 
 type OrderTOML struct {
@@ -26,13 +29,7 @@ type CNBBuildpack struct {
 	Optional bool   `toml:"optional,omitempty" yaml:"optional,omitempty"`
 }
 
-type ManifestYAML struct {
-	Language     string         `yaml:"language"`
-	PrePackage   string         `yaml:"pre_package"`
-	IncludeFiles []string       `yaml:"include_files"`
-	Dependencies []V2Dependency `yaml:"dependencies"`
-	Stack        string         `yaml:"stack"`
-}
+
 
 type V2Dependency struct {
 	Name     string   `yaml:"name"`
@@ -40,4 +37,6 @@ type V2Dependency struct {
 	URI      string   `yaml:"uri"`
 	SHA256   string   `yaml:"sha256"`
 	CFStacks []string `yaml:"cf_stacks"`
+	SourceURI      string   `yaml:"source_uri"`
+	SourceSHA256   string   `yaml:"source_sha256"`
 }
