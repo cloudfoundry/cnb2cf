@@ -10,6 +10,14 @@ include_files:
 - order.toml
 - manifest.yml
 dependencies:
+- name: lifecycle
+  version: 0.1.0
+  uri: https://github.com/buildpack/lifecycle/releases/download/v0.1.0/lifecycle-v0.1.0+linux.x86-64.tgz
+  sha256: 83d0ed3e6ab17de71623ce6413ee95468e2d3d584d0afaa2182995949bcf669d
+  cf_stacks:
+  - cflinuxfs3
+  source: https://github.com/buildpack/lifecycle/releases/download/v0.1.0/lifecycle-v0.1.0%2Blinux.x86-64.tgz
+  source_sha256: 83d0ed3e6ab17de71623ce6413ee95468e2d3d584d0afaa2182995949bcf669d
 - name: org.cloudfoundry.buildpacks.nodejs
   version: 0.0.7
   uri: ""
@@ -26,10 +34,4 @@ dependencies:
   - cflinuxfs3
   source: https://github.com/cloudfoundry/npm-cnb/archive/v0.0.7.tar.gz
   source_sha256: 12aff798caf9ebd79e21676cd809a01c22df79cbefcaacb90457b7ba27897786
-- name: lifecycle
-  version: 0.1.0
-  uri: https://github.com/buildpack/lifecycle/releases/download/v0.1.0/lifecycle-v0.1.0+linux.x86-64.tgz
-  sha256: 83d0ed3e6ab17de71623ce6413ee95468e2d3d584d0afaa2182995949bcf669d
-  cf_stacks:
-  - cflinuxfs3
 stack: ""

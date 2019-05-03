@@ -111,9 +111,10 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	defer os.RemoveAll(tmpDir)
 
 	for i, d := range manifest.Dependencies {
-		if d.Source == "" {
+		if d.Name == "lifecycle"{
 			continue
 		}
+
 		downloadDir, buildDir, err := makeDirs(filepath.Join(tmpDir, d.Name))
 		if err != nil {
 			log.Println(err.Error())

@@ -110,14 +110,14 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 			Expect(packager.FindCNB(sourcePath)).To(Equal(sourcePath))
 		})
 
-		it("returns the path of the buildpack.toml if it is top level", func() {
+		it("returns error when there is no buildpack.toml ", func() {
 			sourcePath := filepath.Join("testdata", "cnb-source", "bad-source-no-toml")
 			_, err := packager.FindCNB(sourcePath)
 			Expect(err).To(MatchError("failed to find find cnb source: no buildpack.toml"))
 		})
 
-		it("returns error if there is no buildpack.toml", func() {
-			sourcePath := filepath.Join("testdata", "cnb-source", "bad-source")
+		it("returns error  when there are multiple cnbs", func() {
+			sourcePath := filepath.Join("testdata", "cnb-source", "bad-source-multiple-cnbs")
 			_, err := packager.FindCNB(sourcePath)
 			Expect(err).To(MatchError("failed to find find cnb source: found multiple buildpack.toml files"))
 		})
