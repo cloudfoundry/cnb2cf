@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cloudfoundry/libbuildpack"
+
 	"github.com/cloudfoundry/cnb2cf/creator"
 	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/cloudfoundry/cnb2cf/packager"
@@ -186,7 +188,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		newName = strings.Replace(newName, "-cached", "", 1)
 	}
 
-	if err := os.Rename(zipFile, newName); err != nil {
+	if err := libbuildpack.CopyFile(zipFile, newName); err != nil {
 		log.Print(err.Error())
 		return subcommands.ExitFailure
 	}
