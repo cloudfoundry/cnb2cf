@@ -1,11 +1,20 @@
 ---
 include_files:
-  - bin/compile
-  - bin/detect
-  - bin/finalize
-  - bin/release
-  - bin/supply
-  - order.toml
-  - manifest.yml
-  - VERSION
-dependencies: []
+- bin/compile
+- bin/detect
+- bin/finalize
+- bin/release
+- bin/supply
+- order.toml
+- manifest.yml
+- VERSION
+dependencies:
+- name: lifecycle
+  version: 0.1.0
+  uri: https://buildpacks.cloudfoundry.org/dependencies/lifecycle/lifecycle-0.1.0-any-stack-83d0ed3e.tgz
+  sha256: 83d0ed3e6ab17de71623ce6413ee95468e2d3d584d0afaa2182995949bcf669d
+  cf_stacks:
+  - cflinuxfs2
+  - cflinuxfs3
+  source: https://github.com/buildpack/lifecycle/releases/download/v0.1.0/lifecycle-v0.1.0%2Blinux.x86-64.tgz
+  source_sha256: 83d0ed3e6ab17de71623ce6413ee95468e2d3d584d0afaa2182995949bcf669d
