@@ -2,11 +2,12 @@ package creator
 
 import (
 	"fmt"
-	"github.com/cloudfoundry/cnb2cf/metadata"
 	"io/ioutil"
 
+	"github.com/cloudfoundry/cnb2cf/metadata"
+
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Config struct {

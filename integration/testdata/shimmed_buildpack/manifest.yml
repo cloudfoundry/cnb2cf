@@ -20,7 +20,7 @@ dependencies:
   source_sha256: 83d0ed3e6ab17de71623ce6413ee95468e2d3d584d0afaa2182995949bcf669d
 - name: org.cloudfoundry.buildpacks.nodejs
   version: 0.0.7
-  uri: ""
+  uri: "" #uri doesn't matter in this test
   sha256: ""
   cf_stacks:
   - cflinuxfs3

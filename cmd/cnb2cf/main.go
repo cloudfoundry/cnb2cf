@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
 	"github.com/cloudfoundry/cnb2cf/creator"
 	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/cloudfoundry/cnb2cf/packager"
@@ -110,7 +111,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	defer os.RemoveAll(tmpDir)
 
 	for i, d := range manifest.Dependencies {
-		if d.Name == "lifecycle"{
+		if d.Name == "lifecycle" {
 			continue
 		}
 
@@ -142,7 +143,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 			currentDepName += "-cached"
 		}
 
-		if err := packager.UpdateDependency(&d, filepath.Join(buildDir, currentDepName + ".tgz")); err != nil {
+		if err := packager.UpdateDependency(&d, filepath.Join(buildDir, currentDepName+".tgz")); err != nil {
 			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}
@@ -150,6 +151,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		manifest.Dependencies[i] = d
 	}
 
+	// Copies current directory into tempdir for packaging
 	dir, err := cfPackager.CopyDirectory(".")
 	if err != nil {
 		log.Printf("failed to copy buildpack dir: %s\n", err.Error())
@@ -171,14 +173,20 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		p.version = strings.TrimSpace(string(v))
 	}
 
-	// Cached is always true, because the CNBs are being cached within the shimmed buildpack
+	// Uses V2B Packager to ensure cached dependencies are set up correctly
+	// Cached is always true, because the CNBs are being cached (even if their internal dependencies aren't) within the shimmed buildpack
 	zipFile, err := cfPackager.Package(dir, p.cacheDir, p.version, p.stack, true)
 	if err != nil {
 		log.Printf("failed to package CF buildpack: %s\n", err.Error())
 		return subcommands.ExitFailure
 	}
 
-	if err := os.Rename(zipFile, filepath.Base(zipFile)); err != nil {
+	newName := filepath.Base(zipFile)
+	if !p.cached {
+		newName = strings.Replace(newName, "-cached", "", 1)
+	}
+
+	if err := os.Rename(zipFile, newName); err != nil {
 		log.Print(err.Error())
 		return subcommands.ExitFailure
 	}

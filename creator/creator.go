@@ -18,7 +18,7 @@ import (
 	_ "github.com/cloudfoundry/cnb2cf/statik"
 	"github.com/pkg/errors"
 	"github.com/rakyll/statik/fs"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func CreateBuildpack(cfg Config, outputDir string) error {

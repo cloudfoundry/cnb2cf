@@ -2,15 +2,16 @@ package creator_test
 
 import (
 	"archive/zip"
-	"github.com/cloudfoundry/cnb2cf/metadata"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/cloudfoundry/cnb2cf/metadata"
+
 	"github.com/BurntSushi/toml"
 	"github.com/cloudfoundry/cnb2cf/creator"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"

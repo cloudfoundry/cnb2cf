@@ -1,8 +1,9 @@
 package creator_test
 
 import (
-	"github.com/cloudfoundry/cnb2cf/metadata"
 	"testing"
+
+	"github.com/cloudfoundry/cnb2cf/metadata"
 
 	"github.com/cloudfoundry/cnb2cf/creator"
 

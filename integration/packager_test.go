@@ -33,7 +33,6 @@ func testIntegrationPackager(t *testing.T, when spec.G, it spec.S) {
 			bpName = "shimmed_nodejs_" + cutlass.RandStringRunes(5)
 			bpDir, err = filepath.Abs(filepath.Join("testdata", "shimmed_buildpack"))
 			Expect(err).NotTo(HaveOccurred())
-			shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cached-cflinuxfs3-v1.0.0.zip")
 
 			app = cutlass.New(filepath.Join("testdata", "nodejs_app"))
 			app.Buildpacks = []string{bpName + "_buildpack"}
@@ -48,6 +47,8 @@ func testIntegrationPackager(t *testing.T, when spec.G, it spec.S) {
 		it("creates a runnable online v2 shimmed buildpack", func() {
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3")
 			Expect(err).NotTo(HaveOccurred(), string(output))
+
+			shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cflinuxfs3-v1.0.0.zip")
 			Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
 
 			Expect(app.Push()).To(Succeed())
@@ -59,6 +60,8 @@ func testIntegrationPackager(t *testing.T, when spec.G, it spec.S) {
 		it("creates a runnable offline v2 shimmed buildpack", func() {
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3", "-cached")
 			Expect(err).NotTo(HaveOccurred(), string(output))
+
+			shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cached-cflinuxfs3-v1.0.0.zip")
 			Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
 
 			Expect(app.Push()).To(Succeed())
