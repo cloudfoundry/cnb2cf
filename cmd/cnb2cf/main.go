@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"github.com/cloudfoundry/cnb2cf/creator"
 	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/cloudfoundry/cnb2cf/packager"
@@ -172,6 +171,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		p.version = strings.TrimSpace(string(v))
 	}
 
+	// Cached is always true, because the CNBs are being cached within the shimmed buildpack
 	zipFile, err := cfPackager.Package(dir, p.cacheDir, p.version, p.stack, true)
 	if err != nil {
 		log.Printf("failed to package CF buildpack: %s\n", err.Error())
@@ -184,6 +184,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	}
 
 	log.Printf("Packaged Shimmed Buildpack at: %s", filepath.Base(zipFile))
+
 	return subcommands.ExitSuccess
 }
 
