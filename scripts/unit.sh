@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
+set -uo pipefail
 
-set -euo pipefail
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 go mod vendor
 
@@ -15,4 +15,3 @@ else
 fi
 
 exit $exit_code
-

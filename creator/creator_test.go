@@ -91,15 +91,13 @@ func testCreatorUnit(t *testing.T, when spec.G, it spec.S) {
 			Expect(manifest.IncludeFiles).To(ContainElement("manifest.yml"))
 			Expect(manifest.IncludeFiles).To(ContainElement("VERSION"))
 
-			Expect(manifest.Dependencies[0].Name).To(Equal("v3-builder"))
-			Expect(manifest.Dependencies[1].Name).To(Equal("v3-detector"))
-			Expect(manifest.Dependencies[2].Name).To(Equal("v3-launcher"))
+			Expect(manifest.Dependencies[0].Name).To(Equal("lifecycle"))
 
-			Expect(manifest.Dependencies[3].Name).To(Equal("some-cnb-id"))
-			Expect(manifest.Dependencies[3].Version).To(Equal("some-version"))
-			Expect(manifest.Dependencies[3].SHA256).To(Equal("some-sha"))
-			Expect(manifest.Dependencies[3].URI).To(Equal("some-uri"))
-			Expect(manifest.Dependencies[3].CFStacks).To(Equal([]string{"some-stack"}))
+			Expect(manifest.Dependencies[1].Name).To(Equal("some-cnb-id"))
+			Expect(manifest.Dependencies[1].Version).To(Equal("some-version"))
+			Expect(manifest.Dependencies[1].SHA256).To(Equal("some-sha"))
+			Expect(manifest.Dependencies[1].URI).To(Equal("some-uri"))
+			Expect(manifest.Dependencies[1].CFStacks).To(Equal([]string{"some-stack"}))
 		})
 
 		it("generates an order.toml", func() {
