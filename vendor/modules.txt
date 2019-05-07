@@ -11,7 +11,7 @@ github.com/buildpack/libbuildpack/logger
 github.com/buildpack/libbuildpack/internal
 github.com/buildpack/libbuildpack/stack
 github.com/buildpack/libbuildpack/buildplan
-# github.com/cloudfoundry/libbuildpack v0.0.0-20190503154657-c91e8ad35626
+# github.com/cloudfoundry/libbuildpack v0.0.0-20190507175455-b1c9bc2c89ac
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
@@ -62,7 +62,7 @@ github.com/tidwall/match
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190506115046-ca7f33d4116e
+# golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/encoding
