@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/cloudfoundry/libbuildpack v0.0.0-20190507175455-b1c9bc2c89ac
+	github.com/cloudfoundry/libbuildpack v0.0.0-20190508190409-266792a357b0
 	github.com/cloudfoundry/libcfbuildpack v1.53.1-0.20190501194855-d124ed03f37c
 	github.com/google/subcommands v0.0.0-20181012225330-46f0354f6315
 	github.com/onsi/gomega v1.5.0
