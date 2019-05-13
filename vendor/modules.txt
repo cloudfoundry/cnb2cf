@@ -11,11 +11,11 @@ github.com/buildpack/libbuildpack/logger
 github.com/buildpack/libbuildpack/internal
 github.com/buildpack/libbuildpack/stack
 github.com/buildpack/libbuildpack/buildplan
-# github.com/cloudfoundry/libbuildpack v0.0.0-20190507175455-b1c9bc2c89ac
+# github.com/cloudfoundry/libbuildpack v0.0.0-20190508190409-266792a357b0
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
-# github.com/cloudfoundry/libcfbuildpack v1.53.1-0.20190501194855-d124ed03f37c
+# github.com/cloudfoundry/libcfbuildpack v1.55.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
@@ -26,7 +26,7 @@ github.com/cloudfoundry/libcfbuildpack/internal
 github.com/elazarl/goproxy
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/google/subcommands v0.0.0-20181012225330-46f0354f6315
+# github.com/google/subcommands v1.0.1
 github.com/google/subcommands
 # github.com/mattn/go-colorable v0.1.1
 github.com/mattn/go-colorable
@@ -58,13 +58,13 @@ github.com/sclevine/spec/report
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match
-# golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
+# golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b
+# golang.org/x/sys v0.0.0-20190425145619-16072639606e
 golang.org/x/sys/unix
-# golang.org/x/text v0.3.2
+# golang.org/x/text v0.3.1
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/htmlindex
