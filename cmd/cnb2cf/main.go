@@ -1,7 +1,5 @@
 package main
 
-//go:generate statik -src=./template
-
 import (
 	"context"
 	"flag"
