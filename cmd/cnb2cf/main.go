@@ -79,6 +79,7 @@ type packageCmd struct {
 	version  string
 	cacheDir string
 	stack    string
+	dev      bool
 }
 
 func (*packageCmd) Name() string { return "package" }
@@ -96,6 +97,7 @@ func (p *packageCmd) SetFlags(f *flag.FlagSet) {
 	f.BoolVar(&p.cached, "cached", false, "include dependencies")
 	f.StringVar(&p.cacheDir, "cachedir", packager.DefaultCacheDir, "cache dir")
 	f.StringVar(&p.stack, "stack", "", "stack to package buildpack for")
+	f.BoolVar(&p.dev, "dev", false, "use local dependencies")
 }
 
 func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
@@ -112,6 +114,8 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	}
 	defer os.RemoveAll(tmpDir)
 
+	pkgr := packager.Packager{Dev: p.dev}
+
 	for i, d := range manifest.Dependencies {
 		if d.Name == "lifecycle" {
 			continue
@@ -125,17 +129,17 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 
 		tarFile := filepath.Join(downloadDir, filepath.Base(d.Source))
 
-		if err := packager.InstallCNBSource(d, tarFile); err != nil {
+		if err := pkgr.InstallCNBSource(d, tarFile); err != nil {
 			log.Printf("failed to download CNB source for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}
 
-		if err := packager.ExtractCNBSource(d, tarFile, downloadDir); err != nil {
+		if err := pkgr.ExtractCNBSource(d, tarFile, downloadDir); err != nil {
 			log.Printf("failed to extract CNB source for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}
 
-		if err := packager.BuildCNB(downloadDir, filepath.Join(buildDir, d.Name), p.cached); err != nil {
+		if err := pkgr.BuildCNB(downloadDir, filepath.Join(buildDir, d.Name), p.cached); err != nil {
 			log.Printf("failed to build CNB from source for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}
@@ -145,7 +149,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 			currentDepName += "-cached"
 		}
 
-		if err := packager.UpdateDependency(&d, filepath.Join(buildDir, currentDepName+".tgz")); err != nil {
+		if err := pkgr.UpdateDependency(&d, filepath.Join(buildDir, currentDepName+".tgz")); err != nil {
 			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}
@@ -193,7 +197,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		return subcommands.ExitFailure
 	}
 
-	log.Printf("Packaged Shimmed Buildpack at: %s", filepath.Base(zipFile))
+	log.Printf("Packaged Shimmed Buildpack at: %s", filepath.Base(newName))
 
 	return subcommands.ExitSuccess
 }

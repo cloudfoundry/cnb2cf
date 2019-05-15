@@ -5,41 +5,64 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/cloudfoundry/cnb2cf/metadata"
-	"github.com/cloudfoundry/cnb2cf/utils"
-	"github.com/cloudfoundry/libbuildpack"
-	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cloudfoundry/cnb2cf/metadata"
+	"github.com/cloudfoundry/libbuildpack"
+	"github.com/cloudfoundry/libbuildpack/packager"
+	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 )
 
 var DefaultCacheDir = filepath.Join(os.Getenv("HOME"), ".cnb2cf", "cache")
 
-func InstallCNBSource(dep metadata.V2Dependency, dstFile string) error {
-	if err := downloadFile(dep.Source, dstFile); err != nil {
+type Packager struct {
+	Dev bool
+}
+
+func (p *Packager) InstallCNBSource(dep metadata.V2Dependency, dest string) error {
+	if p.Dev {
+		info, err := os.Stat(dep.Source)
+		exists := !os.IsNotExist(err)
+		if exists && err != nil {
+			return err
+		}
+
+		if exists && info.IsDir() {
+			if err := os.MkdirAll(dest, 0755); err != nil {
+				return err
+			}
+			return libbuildpack.CopyDirectory(dep.Source, dest)
+		}
+	}
+
+	if err := packager.DownloadFromURI(dep.Source, dest); err != nil {
 		return err
 	}
 
-	return checkSHA256(dstFile, dep.SourceSHA256)
+	return libbuildpack.CheckSha256(dest, dep.SourceSHA256)
 }
 
-func ExtractCNBSource(dep metadata.V2Dependency, srcFile, outputDir string) error {
-	if strings.HasSuffix(dep.Name, ".zip") {
-		return libbuildpack.ExtractZip(srcFile, outputDir)
+func (p *Packager) ExtractCNBSource(dep metadata.V2Dependency, src, dstDir string) error {
+	if strings.HasSuffix(dep.Source, "/") {
+		return libbuildpack.CopyDirectory(src, dstDir)
 	}
 
-	if strings.HasSuffix(dep.Name, ".tar.xz") {
-		return libbuildpack.ExtractTarXz(srcFile, outputDir)
+	if strings.HasSuffix(dep.Source, ".zip") {
+		return libbuildpack.ExtractZip(src, dstDir)
 	}
 
-	return libbuildpack.ExtractTarGz(srcFile, outputDir)
+	if strings.HasSuffix(dep.Source, ".tar.xz") {
+		return libbuildpack.ExtractTarXz(src, dstDir)
+	}
+
+	return libbuildpack.ExtractTarGz(src, dstDir)
 }
 
-func BuildCNB(extractDir, outputDir string, cached bool) error {
-	foundSrc, err := FindCNB(extractDir)
+func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool) error {
+	foundSrc, err := p.FindCNB(extractDir)
 	if err != nil {
 		return err
 	}
@@ -58,7 +81,7 @@ func BuildCNB(extractDir, outputDir string, cached bool) error {
 // FindCNB returns the path to the cnb source if it can find a single buildpack.toml
 // in the top level dir or within one directory
 // This is to support source tar files with a root directory (github release structure)
-func FindCNB(extractDir string) (string, error) {
+func (p *Packager) FindCNB(extractDir string) (string, error) {
 	buildpackTOML := filepath.Join(extractDir, "buildpack.toml")
 	if _, err := os.Stat(buildpackTOML); err == nil {
 		return filepath.Dir(buildpackTOML), nil
@@ -81,7 +104,7 @@ func FindCNB(extractDir string) (string, error) {
 	return filepath.Dir(paths[0]), nil
 }
 
-func UpdateDependency(dep *metadata.V2Dependency, depPath string) error {
+func (p *Packager) UpdateDependency(dep *metadata.V2Dependency, depPath string) error {
 	dep.URI = fmt.Sprintf("file://%s", depPath)
 	sha, err := getSHA256(depPath)
 	if err != nil {
@@ -90,20 +113,6 @@ func UpdateDependency(dep *metadata.V2Dependency, depPath string) error {
 
 	dep.SHA256 = hex.EncodeToString(sha[:])
 	return nil
-}
-
-func downloadFile(url, destFile string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("could not download: %d", resp.StatusCode)
-	}
-
-	return utils.WriteToFile(resp.Body, destFile, 0666)
 }
 
 func checkSHA256(filePath, expectedSha256 string) error {

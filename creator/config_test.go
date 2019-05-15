@@ -18,13 +18,11 @@ func TestConfigUnit(t *testing.T) {
 
 func testConfigUnit(t *testing.T, when spec.G, it spec.S) {
 	var (
-		err error
+		Expect func(interface{}, ...interface{}) Assertion
 	)
-	it.Before(func() {
-		RegisterTestingT(t)
 
-		Expect(err).ToNot(HaveOccurred())
-		RegisterTestingT(t)
+	it.Before(func() {
+		Expect = NewWithT(t).Expect
 	})
 
 	when("ValidateConfig", func() {

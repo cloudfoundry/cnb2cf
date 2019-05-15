@@ -27,13 +27,14 @@ func testCreatorUnit(t *testing.T, when spec.G, it spec.S) {
 		cfg     creator.Config
 		tempDir string
 		err     error
+		Expect  func(interface{}, ...interface{}) Assertion
 	)
+
 	it.Before(func() {
-		RegisterTestingT(t)
+		Expect = NewWithT(t).Expect
 		tempDir, err = ioutil.TempDir("", "")
 
 		Expect(err).ToNot(HaveOccurred())
-		RegisterTestingT(t)
 	})
 
 	it.After(func() {
@@ -117,8 +118,6 @@ func testCreatorUnit(t *testing.T, when spec.G, it spec.S) {
 		)
 
 		it.Before(func() {
-			RegisterTestingT(t)
-
 			tempDir, err = ioutil.TempDir("", "")
 			Expect(err).NotTo(HaveOccurred())
 

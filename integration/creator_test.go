@@ -20,10 +20,14 @@ func TestIntegrationCreator(t *testing.T) {
 func testIntegrationCreator(t *testing.T, when spec.G, it spec.S) {
 	var (
 		configFile string
+		Expect     func(interface{}, ...interface{}) Assertion
+		Eventually func(interface{}, ...interface{}) AsyncAssertion
 	)
 
 	it.Before(func() {
-		RegisterTestingT(t)
+		g := NewWithT(t)
+		Expect = g.Expect
+		Eventually = g.Eventually
 	})
 
 	it("exits with an error with bad config file", func() {
@@ -51,9 +55,9 @@ func testIntegrationCreator(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it.After(func() {
-			app.Destroy()
-			cutlass.DeleteBuildpack(bpName)
-			os.Remove(shimmedBPFile)
+			Expect(app.Destroy()).To(Succeed())
+			Expect(cutlass.DeleteBuildpack(bpName)).To(Succeed())
+			Expect(os.Remove(shimmedBPFile)).To(Succeed())
 		})
 
 		it("creates a runnable v2 shimmed buildpack", func() {

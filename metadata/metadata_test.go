@@ -1,11 +1,12 @@
 package metadata_test
 
 import (
+	"path/filepath"
+	"testing"
+
 	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
-	"path/filepath"
-	"testing"
 
 	. "github.com/onsi/gomega"
 )
@@ -15,8 +16,12 @@ func TestMetadata(t *testing.T) {
 }
 
 func testUnitMetadata(t *testing.T, when spec.G, it spec.S) {
+	var (
+		Expect func(interface{}, ...interface{}) Assertion
+	)
+
 	it.Before(func() {
-		RegisterTestingT(t)
+		Expect = NewWithT(t).Expect
 	})
 
 	when("ManifestYAML", func() {
