@@ -10,11 +10,11 @@ include_files:
 - VERSION
 dependencies:
 - name: lifecycle
-  version: 0.2.0
-  uri: https://buildpacks.cloudfoundry.org/dependencies/lifecycle/lifecycle-0.2.0-any-stack-0710e5bd.tgz
-  sha256: 0710e5bd8c952eb95353fa14ce66bb686f13de411aad86e2715f3ac5680ab5a0
+  version: 0.2.1
+  uri: https://buildpacks.cloudfoundry.org/dependencies/lifecycle/lifecycle-0.2.1-any-stack-cfd66aac.tgz
+  sha256: cfd66aac303711aa5c9f0a870b4a0fca5619078164552bc337c480c7be0a2deb
   cf_stacks:
   - cflinuxfs2
   - cflinuxfs3
-  source: https://github.com/buildpack/lifecycle/releases/download/v0.2.0/lifecycle-v0.2.0%2Blinux.x86-64.tgz
-  source_sha256: 0710e5bd8c952eb95353fa14ce66bb686f13de411aad86e2715f3ac5680ab5a0
+  source: https://github.com/buildpack/lifecycle/releases/download/v0.2.1/lifecycle-v0.2.1%2Blinux.x86-64.tgz
+  source_sha256: cfd66aac303711aa5c9f0a870b4a0fca5619078164552bc337c480c7be0a2deb
