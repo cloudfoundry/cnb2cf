@@ -2,7 +2,7 @@ module github.com/cloudfoundry/cnb2cf
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/cloudfoundry/libbuildpack v0.0.0-20190618191545-b7f732060e74
+	github.com/cloudfoundry/libbuildpack v0.0.0-20190708161550-16cf920add31
 	github.com/cloudfoundry/libcfbuildpack v1.55.0
 	github.com/google/subcommands v1.0.1
 	github.com/onsi/gomega v1.5.0
