@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,21 +38,9 @@ func (l Layers) Layer(name string) Layer {
 	return Layer{filepath.Join(l.Root, name), metadata, l.logger}
 }
 
-// String makes Layers satisfy the Stringer interface.
-func (l Layers) String() string {
-	return fmt.Sprintf("Layers{ Root: %s, logger: %s }", l.Root, l.logger)
-}
-
 // WriteApplicationMetadata writes application metadata to the filesystem.
 func (l Layers) WriteApplicationMetadata(metadata Metadata) error {
-	f := filepath.Join(l.Root, "launch.toml") // TODO: Remove once launch.toml removed from lifecycle
-
-	l.logger.Debug("Writing application metadata: %s <= %s", f, metadata)
-	if err := internal.WriteTomlFile(f, 0644, metadata); err != nil {
-		return err
-	}
-
-	f = filepath.Join(l.Root, "app.toml")
+	f := filepath.Join(l.Root, "launch.toml")
 
 	l.logger.Debug("Writing application metadata: %s <= %s", f, metadata)
 	return internal.WriteTomlFile(f, 0644, metadata)

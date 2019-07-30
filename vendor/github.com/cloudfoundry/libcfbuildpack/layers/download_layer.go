@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
@@ -54,7 +55,7 @@ func (l DownloadLayer) Artifact() (string, error) {
 
 	artifact := filepath.Join(l.cacheLayer.Root, filepath.Base(l.dependency.URI))
 	if matches {
-		l.logger.SubsequentLine("%s cached download from buildpack", color.GreenString("Reusing"))
+		l.logger.Body("%s cached download from buildpack", color.GreenString("Reusing"))
 		return artifact, nil
 	}
 
@@ -65,7 +66,7 @@ func (l DownloadLayer) Artifact() (string, error) {
 
 	artifact = filepath.Join(l.Root, filepath.Base(l.dependency.URI))
 	if matches {
-		l.logger.SubsequentLine("%s cached download from previous build", color.GreenString("Reusing"))
+		l.logger.Body("%s cached download from previous build", color.GreenString("Reusing"))
 		return artifact, nil
 	}
 
@@ -73,12 +74,12 @@ func (l DownloadLayer) Artifact() (string, error) {
 		return "", err
 	}
 
-	l.logger.SubsequentLine("%s from %s", color.YellowString("Downloading"), l.dependency.URI)
+	l.logger.Body("%s from %s", color.YellowString("Downloading"), strings.ReplaceAll(l.dependency.URI, "%", "%%"))
 	if err := l.download(artifact); err != nil {
 		return "", err
 	}
 
-	l.logger.SubsequentLine("Verifying checksum")
+	l.logger.Body("Verifying checksum")
 	if err := l.verify(artifact); err != nil {
 		return "", err
 	}
@@ -90,12 +91,6 @@ func (l DownloadLayer) Artifact() (string, error) {
 	return artifact, nil
 }
 
-// String makes DownloadLayer satisfy the Stringer interface.
-func (l DownloadLayer) String() string {
-	return fmt.Sprintf("DownloadLayer{ Layer: %s, cacheLayer:%s, dependency: %s, info: %s, logger: %s }",
-		l.Layer, l.cacheLayer, l.dependency, l.info, l.logger)
-}
-
 func (l DownloadLayer) download(file string) error {
 	req, err := http.NewRequest("GET", l.dependency.URI, nil)
 	if err != nil {
@@ -103,7 +98,7 @@ func (l DownloadLayer) download(file string) error {
 	}
 
 	req.Header.Set("User-Agent", fmt.Sprintf("%s/%s", l.info.ID, l.info.Version))
-	t := &http.Transport{}
+	t := &http.Transport{Proxy: http.ProxyFromEnvironment}
 	t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 
 	client := http.Client{Transport: t}

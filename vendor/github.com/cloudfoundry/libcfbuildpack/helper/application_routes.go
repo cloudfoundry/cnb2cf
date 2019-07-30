@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,11 +32,6 @@ type ApplicationRoute struct {
 
 	// URI is the URI exposed by the route.
 	URI string `json:"uri"`
-}
-
-// String makes ApplicationRoute satisfy the Stringer interface.
-func (a ApplicationRoute) String() string {
-	return fmt.Sprintf("ApplicationRoute{ Port: %d, URI: %s }", a.Port, a.URI)
 }
 
 // DefaultApplicationRoutes creates a new instance of ApplicationRoutes, extracting the value from the

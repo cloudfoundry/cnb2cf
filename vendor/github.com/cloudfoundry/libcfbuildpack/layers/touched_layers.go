@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 package layers
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -59,10 +58,10 @@ func (t TouchedLayers) Cleanup() error {
 		return nil
 	}
 
-	t.logger.FirstLine("%s unused layers", color.YellowString("Removing"))
+	t.logger.Header("%s unused layers", color.YellowString("Removing"))
 	for r := range remove.Iterator() {
 		f := r.(string)
-		t.logger.SubsequentLine(strings.TrimSuffix(filepath.Base(f), ".toml"))
+		t.logger.Body(strings.TrimSuffix(filepath.Base(f), ".toml"))
 
 		if err := os.RemoveAll(f); err != nil {
 			return err
@@ -70,12 +69,6 @@ func (t TouchedLayers) Cleanup() error {
 	}
 
 	return nil
-}
-
-// String makes TouchedLayers satisfy the Stringer interface.
-func (t TouchedLayers) String() string {
-	return fmt.Sprintf("TouchedLayers{ Root: %s, logger: %s, touched: %s }",
-		t.Root, t.logger, t.touched)
 }
 
 func (t TouchedLayers) candidates() (internal.Set, error) {
@@ -86,11 +79,10 @@ func (t TouchedLayers) candidates() (internal.Set, error) {
 
 	candidates := internal.NewSet()
 
-	app := filepath.Join(t.Root, "app.toml")
-	launch := filepath.Join(t.Root, "launch.toml") // TODO: Remove once launch.toml removed from lifecycle
+	launch := filepath.Join(t.Root, "launch.toml")
 	store := filepath.Join(t.Root, "store.toml")
 	for _, f := range files {
-		if f != app && f != launch && f != store {
+		if f != launch && f != store {
 			candidates.Add(f)
 		}
 	}

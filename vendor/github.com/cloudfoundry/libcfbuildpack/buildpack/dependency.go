@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,8 @@ package buildpack
 
 import (
 	"fmt"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 // Dependency represents a buildpack dependency.
@@ -44,6 +46,27 @@ type Dependency struct {
 	Licenses Licenses `mapstruct:"licenses" toml:"licenses"`
 }
 
+// NewDependency makes a Dependency from a generic map describing a Dependency
+func NewDependency(dep map[string]interface{}) (Dependency, error) {
+	var d Dependency
+
+	config := mapstructure.DecoderConfig{
+		DecodeHook: unmarshalText,
+		Result:     &d,
+	}
+
+	decoder, err := mapstructure.NewDecoder(&config)
+	if err != nil {
+		return Dependency{}, err
+	}
+
+	if err := decoder.Decode(dep); err != nil {
+		return Dependency{}, err
+	}
+
+	return d, nil
+}
+
 // Identity make Buildpack satisfy the Identifiable interface.
 func (d Dependency) Identity() (string, string) {
 	if d.Version.Version != nil {
@@ -51,12 +74,6 @@ func (d Dependency) Identity() (string, string) {
 	}
 
 	return d.Name, ""
-}
-
-// String makes Dependency satisfy the Stringer interface.
-func (d Dependency) String() string {
-	return fmt.Sprintf("Dependency{ ID: %s, Name: %s, Version: %s, URI: %s, SHA256: %s, Stacks: %s, Licenses: %s }",
-		d.ID, d.Name, d.Version, d.URI, d.SHA256, d.Stacks, d.Licenses)
 }
 
 // Validate ensures that the dependency is valid.

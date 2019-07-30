@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,16 +18,18 @@ package buildpack
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/buildpack/libbuildpack/stack"
+
 	"github.com/buildpack/libbuildpack/buildpack"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
-	"github.com/mitchellh/mapstructure"
-	"path/filepath"
 )
 
 const (
-	cacheRoot            = "dependency-cache"
+	CacheRoot            = "dependency-cache"
 	DependenciesMetadata = "dependencies"
-	DefaultVersions      = "default_versions"
+	DefaultVersions      = "default-versions"
 )
 
 // Buildpack is an extension to libbuildpack.Buildpack that adds additional opinionated behaviors.
@@ -40,6 +42,11 @@ type Buildpack struct {
 	logger logger.Logger
 }
 
+// NewBuildpack creates a new instance of Buildpack from a specified buildpack.Buildpack.
+func NewBuildpack(buildpack buildpack.Buildpack, logger logger.Logger) Buildpack {
+	return Buildpack{buildpack, filepath.Join(buildpack.Root, CacheRoot), logger}
+}
+
 // Dependencies returns the collection of dependencies extracted from the generic buildpack metadata.
 func (b Buildpack) Dependencies() (Dependencies, error) {
 	deps, ok := b.Metadata[DependenciesMetadata].([]map[string]interface{})
@@ -49,7 +56,7 @@ func (b Buildpack) Dependencies() (Dependencies, error) {
 
 	var dependencies Dependencies
 	for _, dep := range deps {
-		d, err := b.dependency(dep)
+		d, err := NewDependency(dep)
 		if err != nil {
 			return Dependencies{}, err
 		}
@@ -106,33 +113,26 @@ func (b Buildpack) PrePackage() (string, bool) {
 	return p, ok
 }
 
-func (b Buildpack) dependency(dep map[string]interface{}) (Dependency, error) {
-	var d Dependency
+func (b Buildpack) RuntimeDependency(id, version string, stack stack.Stack) (Dependency, error) {
+	var err error
 
-	config := mapstructure.DecoderConfig{
-		DecodeHook: unmarshalText,
-		Result:     &d,
+	if version == "" || version == "default" {
+		version, err = b.DefaultVersion(id)
+		if err != nil {
+			return Dependency{}, err
+		}
 	}
 
-	decoder, err := mapstructure.NewDecoder(&config)
+	deps, err := b.Dependencies()
 	if err != nil {
 		return Dependency{}, err
 	}
 
-	if err := decoder.Decode(dep); err != nil {
-		return Dependency{}, err
-	}
-
-	return d, nil
+	return deps.Best(id, version, stack)
 }
 
 // String makes Buildpack satisfy the Stringer interface.
 func (b Buildpack) String() string {
-	return fmt.Sprintf("Buildpack{ Buildpack: %s, CacheRoot: %s, logger: %s }",
+	return fmt.Sprintf("Buildpack{ Buildpack: %#v, CacheRoot: %s, logger: %#v }",
 		b.Buildpack, b.CacheRoot, b.logger)
-}
-
-// NewBuildpack creates a new instance of Buildpack from a specified buildpack.Buildpack.
-func NewBuildpack(buildpack buildpack.Buildpack, logger logger.Logger) Buildpack {
-	return Buildpack{buildpack, filepath.Join(buildpack.Root, cacheRoot), logger}
 }

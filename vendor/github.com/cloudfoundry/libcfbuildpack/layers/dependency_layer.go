@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 package layers
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -30,7 +29,7 @@ import (
 type DependencyLayer struct {
 	Layer
 
-	// Dependency is the dependency provided by this layer
+	// Dependency is the dependency provided by this layer.
 	Dependency buildpack.Dependency
 
 	dependencyBuildPlans buildplan.BuildPlan
@@ -69,12 +68,6 @@ func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flag
 
 	l.contributeToBuildPlan()
 	return nil
-}
-
-// String makes DependencyLayer satisfy the Stringer interface.
-func (l DependencyLayer) String() string {
-	return fmt.Sprintf("DependencyLayer{ Layer: %s, Dependency: %s, dependencyBuildPlans: %s, downloadLayer: %s, logger: %s }",
-		l.Layer, l.Dependency, l.dependencyBuildPlans, l.downloadLayer, l.logger)
 }
 
 func (l *DependencyLayer) contributeToBuildPlan() {

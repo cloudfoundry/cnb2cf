@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,11 +15,6 @@
  */
 
 package internal
-
-import (
-	"fmt"
-	"strings"
-)
 
 // Set represents the mathematical type set.
 type Set struct {
@@ -72,17 +67,6 @@ func (s Set) Iterator() Iterator {
 // Size returns the number of elements in the set.
 func (s Set) Size() int {
 	return len(s.contents)
-}
-
-// String makes Set satisfy the Stringer interface.
-func (s Set) String() string {
-	var entries []string
-
-	for k, _ := range s.contents {
-		entries = append(entries, fmt.Sprintf("%v", k))
-	}
-
-	return fmt.Sprintf("Set{ %s }", strings.Join(entries, ", "))
 }
 
 // NewSet creates an initialized and empty Set.

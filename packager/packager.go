@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -67,7 +69,14 @@ func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool) error {
 		return err
 	}
 
-	packager, err := cnbpackager.New(foundSrc, outputDir)
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	globalCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
+
+	packager, err := cnbpackager.New(foundSrc, outputDir, globalCacheDir)
 	if err != nil {
 		return err
 	}
@@ -75,7 +84,7 @@ func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool) error {
 	if err := packager.Create(cached); err != nil {
 		return err
 	}
-	return packager.Archive(cached)
+	return packager.Archive()
 }
 
 // FindCNB returns the path to the cnb source if it can find a single buildpack.toml

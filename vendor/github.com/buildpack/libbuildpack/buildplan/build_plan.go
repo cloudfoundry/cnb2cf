@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,7 @@
 package buildplan
 
 import (
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/buildpack/libbuildpack/internal"
@@ -38,20 +36,18 @@ func (b BuildPlan) Init() error {
 	return nil
 }
 
+// Merge performs a shallow merge of the entries in passed BuildPlans into this.
+func (b BuildPlan) Merge(buildPlans ...BuildPlan) {
+	for _, bp := range buildPlans {
+		for k, v := range bp {
+			b[k] = v
+		}
+	}
+}
+
 // Write writes the build plan.
 func (b BuildPlan) Write(writer Writer) error {
 	return writer(b)
-}
-
-// String makes BuildPlan satisfy the Stringer interface.
-func (b BuildPlan) String() string {
-	var entries []string
-
-	for k, v := range b {
-		entries = append(entries, fmt.Sprintf("%s: %s", k, v))
-	}
-
-	return fmt.Sprintf("BuildPlan{ %s }", strings.Join(entries, ", "))
 }
 
 // Writer is a function write writes the contents of a BuildPlan

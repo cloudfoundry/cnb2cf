@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,20 +81,14 @@ func (l Layers) Layer(name string) Layer {
 	return Layer{l.Layers.Layer(name), l.logger, l.TouchedLayers}
 }
 
-// String makes Layers satisfy the Stringer interface.
-func (l Layers) String() string {
-	return fmt.Sprintf("Layers{ Layers: %s, DependencyBuildPlans: %s, TouchedLayers: %s, buildpack: %s, buildpackCache: %s, logger: %s }",
-		l.Layers, l.DependencyBuildPlans, l.TouchedLayers, l.buildpack, l.buildpackCache, l.logger)
-}
-
 // WriteApplicationMetadata writes application metadata to the filesystem.
 func (l Layers) WriteApplicationMetadata(metadata Metadata) error {
 	if len(metadata.Slices) > 0 {
-		l.logger.FirstLine("%d application slices", len(metadata.Slices))
+		l.logger.Header("%d application slices", len(metadata.Slices))
 	}
 
 	if len(metadata.Processes) > 0 {
-		l.logger.FirstLine("Process types:")
+		l.logger.Header("Process types:")
 
 		p := metadata.Processes
 		sort.Slice(p, func(i int, j int) bool {
@@ -103,8 +97,8 @@ func (l Layers) WriteApplicationMetadata(metadata Metadata) error {
 
 		max := l.maximumTypeLength(p)
 		for _, p := range p {
-			format := fmt.Sprintf("%%s:%%-%ds %%s", max-len(p.Type))
-			l.logger.SubsequentLine(format, color.CyanString(p.Type), "", p.Command)
+			format := fmt.Sprintf("%%s%%s:%%-%ds %%s", max-len(p.Type))
+			l.logger.Info(format, logger.BodyIndent, color.CyanString(p.Type), "", p.Command)
 		}
 	}
 
@@ -113,7 +107,7 @@ func (l Layers) WriteApplicationMetadata(metadata Metadata) error {
 
 // WritePersistentMetadata writes persistent metadata to the filesystem.
 func (l Layers) WritePersistentMetadata(metadata interface{}) error {
-	l.logger.SubsequentLine("Writing persistent metadata")
+	l.logger.Body("Writing persistent metadata")
 	return l.Layers.WritePersistentMetadata(metadata)
 }
 

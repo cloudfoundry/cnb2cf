@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,11 +26,6 @@ import (
 // Version is an extension to semver.Version to make it marshalable.
 type Version struct {
 	*semver.Version
-}
-
-// String makes Version satisfy the Stringer interface.
-func (v Version) String() string {
-	return fmt.Sprintf("Version{ Version: %s }", v.Version)
 }
 
 // MarshalText makes Version satisfy the encoding.TextMarshaler interface.

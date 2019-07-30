@@ -4,18 +4,19 @@ github.com/BurntSushi/toml
 github.com/Masterminds/semver
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/buildpack/libbuildpack v1.14.0
+# github.com/buildpack/libbuildpack v1.20.0
 github.com/buildpack/libbuildpack/buildpack
 github.com/buildpack/libbuildpack/layers
 github.com/buildpack/libbuildpack/logger
 github.com/buildpack/libbuildpack/internal
 github.com/buildpack/libbuildpack/stack
+github.com/buildpack/libbuildpack/application
 github.com/buildpack/libbuildpack/buildplan
-# github.com/cloudfoundry/libbuildpack v0.0.0-20190514135930-1a939ef723ce
+# github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
-# github.com/cloudfoundry/libcfbuildpack v1.55.0
+# github.com/cloudfoundry/libcfbuildpack v1.79.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
@@ -28,9 +29,9 @@ github.com/elazarl/goproxy
 github.com/fatih/color
 # github.com/google/subcommands v1.0.1
 github.com/google/subcommands
-# github.com/mattn/go-colorable v0.1.1
+# github.com/mattn/go-colorable v0.1.2
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.7
+# github.com/mattn/go-isatty v0.0.8
 github.com/mattn/go-isatty
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
@@ -58,13 +59,15 @@ github.com/sclevine/spec/report
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match
-# golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6
+# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
+github.com/xi2/xz
+# golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190425145619-16072639606e
+# golang.org/x/sys v0.0.0-20190710143415-6ec70d6a5542
 golang.org/x/sys/unix
-# golang.org/x/text v0.3.1
+# golang.org/x/text v0.3.2
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/htmlindex

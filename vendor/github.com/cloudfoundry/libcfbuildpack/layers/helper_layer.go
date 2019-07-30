@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 package layers
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -61,12 +60,6 @@ func (l HelperLayer) Contribute(contributor HelperLayerContributor, flags ...Fla
 
 	l.contributeToBuildPlan()
 	return nil
-}
-
-// String makes HelperLayer satisfy the Stringer interface.
-func (l HelperLayer) String() string {
-	return fmt.Sprintf("HelperLayer{ Layer: %s, ID: %s, buildpack: %s, dependencyBuildPlans: %s, name: %s, logger: %s }",
-		l.Layer, l.ID, l.buildpack, l.dependencyBuildPlans, l.name, l.logger)
 }
 
 func (l *HelperLayer) contributeToBuildPlan() {

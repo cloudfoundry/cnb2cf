@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,10 +28,6 @@ type Stack string
 // DefaultStack creates a new instance of Stack, extracting the name from the CNB_STACK_ID environment variable.
 func DefaultStack(logger logger.Logger) (Stack, error) {
 	s, ok := os.LookupEnv("CNB_STACK_ID")
-	if !ok {
-		s, ok = os.LookupEnv("PACK_STACK_ID")  // TODO: Remove once PACK_STACK_ID removed from lifecycle
-	}
-
 	if !ok {
 		return "", fmt.Errorf("CNB_STACK_ID not set")
 	}
