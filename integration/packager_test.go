@@ -73,7 +73,7 @@ func testIntegrationPackager(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(app.Push()).To(Succeed())
 			Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
-			Eventually(app.Stdout.ANSIStrippedString).Should(MatchRegexp(`NodeJS.*Contributing to layer\n.*Reusing cached download from buildpack`))
+			Eventually(app.Stdout.ANSIStrippedString).Should(MatchRegexp(`Node Engine.*Contributing to layer\n.*Reusing cached download from buildpack`))
 			Expect(app.GetBody("/")).To(Equal("Hello World!"))
 		})
 

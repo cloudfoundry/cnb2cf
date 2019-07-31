@@ -2,5 +2,5 @@
 labels = ["nodejs"]
 buildpacks = [
   { id = "org.cloudfoundry.nodejs", version = "latest" },
-  { id = "org.cloudfoundry.buildpacks.npm", version = "latest" }
+  { id = "org.cloudfoundry.npm", version = "latest" }
 ]
