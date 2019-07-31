@@ -24,8 +24,8 @@ dependencies:
   sha256: ""
   cf_stacks:
   - cflinuxfs3
-  source: https://github.com/cloudfoundry/nodejs-cnb/archive/v0.0.7.tar.gz
-  source_sha256: 1610f9a19d37b7808e0963bfd8be330a4c378702d85f6f80d27789f1c0e8f6d7
+  source: https://github.com/cloudfoundry/node-engine-cnb/archive/v0.0.7.tar.gz
+  source_sha256: 223b648ee2ddb66f962f9fdcee27242f66a5f168abf5f7ecea6c18b966c5d47d
 - name: org.cloudfoundry.buildpacks.npm
   version: 0.0.7
   uri: ""

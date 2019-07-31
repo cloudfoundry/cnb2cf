@@ -143,9 +143,6 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 		}
 
 		currentDepName := d.Name
-		if p.cached {
-			currentDepName += "-cached"
-		}
 
 		if err := pkgr.UpdateDependency(&d, filepath.Join(buildDir, currentDepName+".tgz")); err != nil {
 			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.Name, err.Error())

@@ -1,1 +1,4 @@
-build
+/build
+.bin/
+nodejs-cnb_*
+*_buildpack-*

@@ -7,7 +7,7 @@ go mod vendor
 
 echo "Run CNB2CF Runtime Integration Tests"
 set +e
-go test -timeout 0 -mod=vendor ./integration/... -v -run IntegrationCrea
+go test -timeout 0 -mod=vendor ./integration/... -v -run Integration
 exit_code=$?
 
 if [ "$exit_code" != "0" ]; then
