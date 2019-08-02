@@ -22,11 +22,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
+	templ "text/template"
 
 	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
@@ -54,11 +56,16 @@ type Packager struct {
 	outputDirectory string
 }
 
-func New(bpDir, outputDir, cacheDir string) (Packager, error) {
+func New(bpDir, outputDir, version, cacheDir string) (Packager, error) {
 	l, err := loggerBp.DefaultLogger("")
 	if err != nil {
 		return Packager{}, err
 	}
+
+	if err := insertTemplateVersion(bpDir, version); err != nil {
+		return Packager{}, err
+	}
+
 	specBP, err := buildpackBp.New(bpDir, l)
 	if err != nil {
 		return Packager{}, err
@@ -119,6 +126,27 @@ func (p Packager) Create(cache bool) error {
 	}
 
 	return p.createPackage(allFiles)
+}
+
+func insertTemplateVersion(bpDir, version string) error {
+	bpTomlPath := filepath.Join(bpDir, "buildpack.toml")
+	v := struct {
+		Version string
+	}{
+		Version: version,
+	}
+
+	template, err := templ.ParseFiles(bpTomlPath)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(bpTomlPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		log.Fatal(fmt.Errorf("failed to open buildpack.toml : %s", err))
+	}
+
+	return template.Execute(file, v)
 }
 
 func (p Packager) cacheDependencies() ([]pkgFile, error) {
@@ -193,7 +221,7 @@ func (p Packager) Archive() error {
 }
 
 func (p Packager) addTarFile(tw *tar.Writer, info os.FileInfo, path string) error {
-	if !info.Mode().IsRegular() && !info.Mode().IsDir(){
+	if !info.Mode().IsRegular() && !info.Mode().IsDir() {
 		return nil
 	}
 

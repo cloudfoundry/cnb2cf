@@ -4,7 +4,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/buildpack/libbuildpack v1.21.0 // indirect
 	github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
-	github.com/cloudfoundry/libcfbuildpack v1.79.0
+	github.com/cloudfoundry/libcfbuildpack v1.80.0
 	github.com/google/subcommands v1.0.1
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1

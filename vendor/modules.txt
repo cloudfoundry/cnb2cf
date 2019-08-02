@@ -16,7 +16,7 @@ github.com/buildpack/libbuildpack/buildplan
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
-# github.com/cloudfoundry/libcfbuildpack v1.79.0
+# github.com/cloudfoundry/libcfbuildpack v1.80.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
