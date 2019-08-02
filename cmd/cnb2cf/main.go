@@ -137,7 +137,7 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 			return subcommands.ExitFailure
 		}
 
-		if err := pkgr.BuildCNB(downloadDir, filepath.Join(buildDir, d.Name), p.cached); err != nil {
+		if err := pkgr.BuildCNB(downloadDir, filepath.Join(buildDir, d.Name), p.cached, d.Version); err != nil {
 			log.Printf("failed to build CNB from source for %s: %s\n", d.Name, err.Error())
 			return subcommands.ExitFailure
 		}

@@ -63,7 +63,7 @@ func (p *Packager) ExtractCNBSource(dep metadata.V2Dependency, src, dstDir strin
 	return libbuildpack.ExtractTarGz(src, dstDir)
 }
 
-func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool) error {
+func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool, version string) error {
 	foundSrc, err := p.FindCNB(extractDir)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool) error {
 
 	globalCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
 
-	packager, err := cnbpackager.New(foundSrc, outputDir, globalCacheDir)
+	packager, err := cnbpackager.New(foundSrc, outputDir, version, globalCacheDir)
 	if err != nil {
 		return err
 	}
