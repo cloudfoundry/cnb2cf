@@ -20,18 +20,18 @@ dependencies:
   source: https://github.com/buildpack/lifecycle/releases/download/v0.3.0/lifecycle-v0.3.0%2Blinux.x86-64.tgz
   source_sha256: b8fe16a2666387322df3cc6ee4ae010c75d0ab81c98625fe77f250fd9231095c
 - name: org.cloudfoundry.node-engine
-  version: 0.0.12
+  version: 0.0.25
   uri: "" #uri doesn't matter in this test
   sha256: ""
   cf_stacks:
   - cflinuxfs3
-  source: https://github.com/cloudfoundry/node-engine-cnb/archive/v0.0.12.tar.gz
-  source_sha256: 9ae21e89079162ad7a4f43bf958e7f3af7f15494dabf561ba6b97672709f04e9
+  source: https://github.com/cloudfoundry/node-engine-cnb/archive/v0.0.25.tar.gz
+  source_sha256: 1f90669d5cf767def66ea59acfa3f82a8d0d1502d04f4c0f09cb4d27fecb4c84
 - name: org.cloudfoundry.npm
-  version: 0.0.9
+  version: 0.0.17
   uri: ""
   sha256: ""
   cf_stacks:
   - cflinuxfs3
-  source: https://github.com/cloudfoundry/npm-cnb/archive/v0.0.9.tar.gz
-  source_sha256: 5e1e2793d9efb0d166863ec426acb11214e85332e6480437da1a63f36d55dfbe
+  source: https://github.com/cloudfoundry/npm-cnb/archive/v0.0.17.tar.gz
+  source_sha256: 2fe3fc9a699d137043f7076a9222c4cf1f6119056c87d64cf3ee5f5298099b2d

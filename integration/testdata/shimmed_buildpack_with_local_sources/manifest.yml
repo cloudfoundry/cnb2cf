@@ -28,10 +28,10 @@ dependencies:
   source: nodejs-cnb/
   source_sha256: 1610f9a19d37b7808e0963bfd8be330a4c378702d85f6f80d27789f1c0e8f6d7
 - name: org.cloudfoundry.npm
-  version: 0.0.9
+  version: 0.0.17
   uri: ""
   sha256: ""
   cf_stacks:
     - cflinuxfs3
-  source: https://github.com/cloudfoundry/npm-cnb/archive/v0.0.9.tar.gz
-  source_sha256: 5e1e2793d9efb0d166863ec426acb11214e85332e6480437da1a63f36d55dfbe
+  source: https://github.com/cloudfoundry/npm-cnb/archive/v0.0.17.tar.gz
+  source_sha256: 2fe3fc9a699d137043f7076a9222c4cf1f6119056c87d64cf3ee5f5298099b2d
