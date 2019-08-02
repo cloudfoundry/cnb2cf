@@ -16,21 +16,14 @@
 
 package buildplan
 
-import (
-	"github.com/buildpack/libbuildpack/internal"
-)
+// Dependency represents a dependency in a build.
+type Dependency struct {
+	// Version is the optional dependency version.
+	Version string `toml:"version"`
 
-// Writer is a function write writes the contents of a Plans
-type Writer func(plans Plans) error
-
-// DefaultWriter writes the Plans to a file at os.Args[<INDEX>].
-func DefaultWriter(index int) Writer {
-	return func(plans Plans) error {
-		path, err := internal.Argument(index)
-		if err != nil {
-			return err
-		}
-
-		return internal.WriteTomlFile(path, 0644, plans)
-	}
+	// Metadata is additional metadata attached to the dependency.
+	Metadata Metadata `toml:"metadata"`
 }
+
+// Metadata is additional metadata attached to a dependency.
+type Metadata = map[string]interface{}
