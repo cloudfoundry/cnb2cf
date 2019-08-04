@@ -4,24 +4,25 @@ github.com/BurntSushi/toml
 github.com/Masterminds/semver
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/buildpack/libbuildpack v1.20.0
+# github.com/buildpack/libbuildpack v1.21.0
 github.com/buildpack/libbuildpack/buildpack
 github.com/buildpack/libbuildpack/layers
 github.com/buildpack/libbuildpack/logger
 github.com/buildpack/libbuildpack/internal
 github.com/buildpack/libbuildpack/stack
 github.com/buildpack/libbuildpack/application
-github.com/buildpack/libbuildpack/buildplan
+github.com/buildpack/libbuildpack/buildpackplan
 # github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
-# github.com/cloudfoundry/libcfbuildpack v1.80.0
+# github.com/cloudfoundry/libcfbuildpack v1.82.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
 github.com/cloudfoundry/libcfbuildpack/layers
 github.com/cloudfoundry/libcfbuildpack/logger
+github.com/cloudfoundry/libcfbuildpack/buildpackplan
 github.com/cloudfoundry/libcfbuildpack/internal
 # github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a
 github.com/elazarl/goproxy
@@ -61,11 +62,11 @@ github.com/tidwall/gjson
 github.com/tidwall/match
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
-# golang.org/x/net v0.0.0-20190628185345-da137c7871d7
+# golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190710143415-6ec70d6a5542
+# golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/encoding
