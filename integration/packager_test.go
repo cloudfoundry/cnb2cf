@@ -7,14 +7,23 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/libbuildpack/cutlass"
+	"github.com/cloudfoundry/dagger"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 )
 
+var suite = spec.New("Integration", spec.Parallel(), spec.Report(report.Terminal{}))
+
+func init() {
+	suite("IntegrationPackager", testIntegrationPackager)
+}
+
 func TestIntegrationPackager(t *testing.T) {
-	spec.Run(t, "IntegrationPackager", testIntegrationPackager, spec.Report(report.Terminal{}))
+	dagger.SyncParallelOutput(func() {
+		suite.Run(t)
+	})
 }
 
 func testIntegrationPackager(t *testing.T, when spec.G, it spec.S) {

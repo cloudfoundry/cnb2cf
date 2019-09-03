@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"github.com/onsi/ginkgo"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,11 +11,10 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
-	"github.com/sclevine/spec/report"
 )
 
-func TestIntegrationCreator(t *testing.T) {
-	spec.Run(t, "IntegrationCreator", testIntegrationCreator, spec.Report(report.Terminal{}))
+func init() {
+	suite("IntegrationCreator", testIntegrationCreator)
 }
 
 func testIntegrationCreator(t *testing.T, when spec.G, it spec.S) {
@@ -28,6 +28,7 @@ func testIntegrationCreator(t *testing.T, when spec.G, it spec.S) {
 		g := NewWithT(t)
 		Expect = g.Expect
 		Eventually = g.Eventually
+		cutlass.DefaultStdoutStderr = ginkgo.GinkgoWriter
 	})
 
 	it("exits with an error with bad config file", func() {
