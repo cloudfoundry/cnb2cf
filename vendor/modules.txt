@@ -18,7 +18,7 @@ github.com/cloudfoundry/dagger
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
-# github.com/cloudfoundry/libcfbuildpack v1.84.0
+# github.com/cloudfoundry/libcfbuildpack v1.85.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
