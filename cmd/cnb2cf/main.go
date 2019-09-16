@@ -11,7 +11,6 @@ import (
 
 	"github.com/cloudfoundry/libbuildpack"
 
-	"github.com/cloudfoundry/cnb2cf/creator"
 	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/cloudfoundry/cnb2cf/packager"
 	cfPackager "github.com/cloudfoundry/libbuildpack/packager"
@@ -19,57 +18,11 @@ import (
 )
 
 func main() {
-	subcommands.Register(&createCmd{}, "")
 	subcommands.Register(&packageCmd{}, "")
 
 	flag.Parse()
 	ctx := context.Background()
 	os.Exit(int(subcommands.Execute(ctx)))
-}
-
-type createCmd struct {
-	config string
-}
-
-func (*createCmd) Name() string     { return "create" }
-func (*createCmd) Synopsis() string { return "Create a shimmed buildpack from a config file" }
-func (*createCmd) Usage() string {
-	return `create -config <path to config file>:
-  Generates a shimmed buildpack zip file from the configuration.
-`
-}
-
-func (c *createCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&c.config, "config", "", "Path to config file")
-}
-func (c *createCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	config, err := creator.LoadConfig(c.config)
-	if err != nil {
-		log.Printf("failed to load config: %s\n", err.Error())
-		return subcommands.ExitFailure
-	}
-
-	tempDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		log.Printf("failed to create tempdir: %s\n", err.Error())
-		return subcommands.ExitFailure
-	}
-
-	defer os.RemoveAll(tempDir)
-
-	outputDir := "."
-
-	if err := creator.CreateBuildpack(config, tempDir); err != nil {
-		log.Printf("failed to convert buildpack to shim: %s\n", err.Error())
-		return subcommands.ExitFailure
-	}
-
-	if err := creator.CreateZip(config, tempDir, outputDir); err != nil {
-		log.Printf("failed to create zip: %s\n", err.Error())
-		return subcommands.ExitFailure
-	}
-
-	return subcommands.ExitSuccess
 }
 
 type packageCmd struct {
