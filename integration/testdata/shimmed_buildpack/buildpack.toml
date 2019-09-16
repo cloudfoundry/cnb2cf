@@ -1,0 +1,8 @@
+api = "0.2"
+
+[[groups]]
+labels = ["nodejs"]
+buildpacks = [
+  { id = "org.cloudfoundry.node-engine", version = "latest" },
+  { id = "org.cloudfoundry.npm", version = "latest" }
+]

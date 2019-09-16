@@ -53,8 +53,10 @@ func (p *packageCmd) SetFlags(f *flag.FlagSet) {
 
 func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	var manifest metadata.ManifestYAML
-	if err := manifest.Load("manifest.yml"); err != nil {
-		log.Printf("failed to load manifest.yml: %s\n", err.Error())
+	var bpTOML metadata.BuildpackToml
+
+	if err := bpTOML.Load("buildpack.toml"); err != nil {
+		log.Printf("failed to load buildpack.toml: %s\n", err.Error())
 		return subcommands.ExitFailure
 	}
 
@@ -65,44 +67,46 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	}
 	defer os.RemoveAll(tmpDir)
 
+	manifest.Initialize(bpTOML.Info.ID)
 	pkgr := packager.Packager{Dev: p.dev}
 
-	for i, d := range manifest.Dependencies {
-		if d.Name == "lifecycle" {
-			continue
-		}
-
-		downloadDir, buildDir, err := makeDirs(filepath.Join(tmpDir, d.Name))
+	for _, d := range bpTOML.Metadata.Dependencies {
+		downloadDir, buildDir, err := makeDirs(filepath.Join(tmpDir, d.ID))
 		if err != nil {
 			log.Println(err.Error())
 			return subcommands.ExitFailure
 		}
 
 		tarFile := filepath.Join(downloadDir, filepath.Base(d.Source))
+		fromSource := true
+		if d.ID == metadata.Lifecycle {
+			tarFile = filepath.Join(buildDir, d.ID+".tgz")
+			fromSource = false
+		}
 
-		if err := pkgr.InstallCNBSource(d, tarFile); err != nil {
-			log.Printf("failed to download CNB source for %s: %s\n", d.Name, err.Error())
+		if err := pkgr.InstallDependency(d, tarFile, fromSource); err != nil {
+			log.Printf("failed to download CNB source for %s: %s\n", d.ID, err.Error())
 			return subcommands.ExitFailure
 		}
 
-		if err := pkgr.ExtractCNBSource(d, tarFile, downloadDir); err != nil {
-			log.Printf("failed to extract CNB source for %s: %s\n", d.Name, err.Error())
+		if d.ID != metadata.Lifecycle {
+			if err := pkgr.ExtractCNBSource(d, tarFile, downloadDir); err != nil {
+				log.Printf("failed to extract CNB source for %s: %s\n", d.ID, err.Error())
+				return subcommands.ExitFailure
+			}
+
+			if err := pkgr.BuildCNB(downloadDir, filepath.Join(buildDir, d.ID), p.cached, d.Version); err != nil {
+				log.Printf("failed to build CNB from source for %s: %s\n", d.ID, err.Error())
+				return subcommands.ExitFailure
+			}
+		}
+
+		if err := d.UpdateDependency(filepath.Join(buildDir, d.ID+".tgz")); err != nil {
+			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.ID, err.Error())
 			return subcommands.ExitFailure
 		}
 
-		if err := pkgr.BuildCNB(downloadDir, filepath.Join(buildDir, d.Name), p.cached, d.Version); err != nil {
-			log.Printf("failed to build CNB from source for %s: %s\n", d.Name, err.Error())
-			return subcommands.ExitFailure
-		}
-
-		currentDepName := d.Name
-
-		if err := pkgr.UpdateDependency(&d, filepath.Join(buildDir, currentDepName+".tgz")); err != nil {
-			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.Name, err.Error())
-			return subcommands.ExitFailure
-		}
-
-		manifest.Dependencies[i] = d
+		manifest.Dependencies = append(manifest.Dependencies, d)
 	}
 
 	// Copies current directory into tempdir for packaging
@@ -113,18 +117,20 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	}
 	defer os.RemoveAll(dir)
 
+	log.Printf("Manifest: %v", manifest)
+	// TODO: maybe we shouldn't if exists bin dir
+	if err := pkgr.WriteBinFromTemplate(dir); err != nil {
+		log.Printf("failed to write the shim binaries from the template directory: %s\n", err.Error())
+		return subcommands.ExitFailure
+	}
+
 	if err := manifest.Write(filepath.Join(dir, "manifest.yml")); err != nil {
 		log.Printf("failed to update manifest: %s\n", err.Error())
 		return subcommands.ExitFailure
 	}
 
 	if p.version == "" {
-		v, err := ioutil.ReadFile("VERSION")
-		if err != nil {
-			log.Printf("-version was not set and failed to read VERSION file: %s\n", err.Error())
-			return subcommands.ExitFailure
-		}
-		p.version = strings.TrimSpace(string(v))
+		p.version = bpTOML.Info.Version
 	}
 
 	// Uses V2B Packager to ensure cached dependencies are set up correctly

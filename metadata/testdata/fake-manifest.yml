@@ -14,7 +14,7 @@ include_files:
   - bin/finalize
   - bin/release
   - bin/supply
-  - order.toml
+  - buildpack.toml
   - manifest.yml
 dependencies:
   - name: org.cloudfoundry.buildpacks.some-language

@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
+./scripts/update_shim_binaries_with_local_updates.sh -s ~/workspace/libbuildpack
 ./scripts/build.sh
 go mod vendor
 

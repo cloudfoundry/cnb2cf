@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry/cnb2cf/packager"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
-	httpmock "gopkg.in/jarcoal/httpmock.v1"
+	"gopkg.in/jarcoal/httpmock.v1"
 
 	. "github.com/onsi/gomega"
 )
@@ -38,7 +38,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		os.RemoveAll(tmpDir)
 	})
 
-	when("InstallCNBSource", func() {
+	when("InstallDependency", func() {
 		it.Before(func() {
 			httpmock.Activate()
 		})
@@ -49,7 +49,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 
 		it("installs the remote CNB source URI even if dev flag set", func() {
 			p.Dev = true
-			dep := metadata.V2Dependency{
+			dep := metadata.Dependency{
 				Name:         "some-cnb",
 				Version:      "1.0.0",
 				Source:       "https://example.com/cnb.tgz",
@@ -61,14 +61,14 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 				httpmock.NewStringResponder(200, "contents"))
 
 			dstFile := filepath.Join(tmpDir, "some-cnb", "archive")
-			Expect(p.InstallCNBSource(dep, dstFile)).To(Succeed())
+			Expect(p.InstallDependency(dep, dstFile, true)).To(Succeed())
 			Expect(dstFile).To(BeAnExistingFile())
 		})
 
 		it("copies if the CNB source is a dir", func() {
 			p.Dev = true
 
-			dep := metadata.V2Dependency{
+			dep := metadata.Dependency{
 				Name:         "some-cnb",
 				Version:      "1.0.0",
 				Source:       "testdata/fake-dir/",
@@ -77,7 +77,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 			}
 
 			dstFile := filepath.Join(tmpDir, "some-dst")
-			Expect(p.InstallCNBSource(dep, dstFile)).To(Succeed())
+			Expect(p.InstallDependency(dep, dstFile, true)).To(Succeed())
 			Expect(dstFile).To(BeADirectory())
 			Expect(filepath.Join(dstFile, "file")).To(BeAnExistingFile())
 		})
@@ -85,7 +85,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 
 	when("ExtractCNBSource", func() {
 		it("extracts a tgz file", func() {
-			dep := metadata.V2Dependency{
+			dep := metadata.Dependency{
 				Source: "https://example.com/cnb.tgz",
 			}
 
@@ -96,7 +96,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("extracts a zip file", func() {
-			dep := metadata.V2Dependency{
+			dep := metadata.Dependency{
 				Source: "https://example.com/cnb.zip",
 			}
 
@@ -107,7 +107,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("copies a directory", func() {
-			dep := metadata.V2Dependency{
+			dep := metadata.Dependency{
 				Source: "file:///tmp/foo/",
 			}
 
@@ -115,31 +115,6 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(p.ExtractCNBSource(dep, tarPath, tmpDir)).To(Succeed())
 			Expect(filepath.Join(tmpDir, "file")).To(BeAnExistingFile())
-		})
-	})
-
-	when("UpdateManifest", func() {
-		var (
-			depPath string
-			dep     metadata.V2Dependency
-		)
-
-		it.Before(func() {
-			depPath, err = filepath.Abs(filepath.Join("testdata", "fake-dir.tgz"))
-			Expect(err).NotTo(HaveOccurred())
-			dep = metadata.V2Dependency{
-				Name:    "some-cnb",
-				Version: "1.0.0",
-				URI:     "https://example.com/cnb.tgz",
-				SHA256:  "some-sha",
-			}
-		})
-
-		it("creates an online cnb archive", func() {
-			Expect(p.UpdateDependency(&dep, depPath)).To(Succeed())
-
-			Expect(dep.URI).To(Equal("file://" + depPath))
-			Expect(dep.SHA256).To(Equal("84efae3d2c9ebecf21fe40ad397ba46ec8b0cc71155ac309f72e03f1347bc8e8"))
 		})
 	})
 
@@ -167,28 +142,22 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		})
 	})
 
-	when("CFPackage", func() {
-		var (
-			depPath string
-			dep     metadata.V2Dependency
-		)
+	when("WriteBinFromTemplate", func() {
+		it("Writes shim binaries", func() {
+			tempDir := os.TempDir()
+			Expect(p.WriteBinFromTemplate(tempDir)).To(Succeed())
 
-		it.Before(func() {
-			depPath, err = filepath.Abs(filepath.Join("testdata", "fake-dir.tgz"))
-			Expect(err).NotTo(HaveOccurred())
-			dep = metadata.V2Dependency{
-				Name:    "some-cnb",
-				Version: "1.0.0",
-				URI:     "https://example.com/cnb.tgz",
-				SHA256:  "some-sha",
+			desiredBPFiles := []string{
+				"bin/compile",
+				"bin/detect",
+				"bin/finalize",
+				"bin/release",
+				"bin/supply",
 			}
-		})
 
-		it("creates an online cnb archive", func() {
-			Expect(p.UpdateDependency(&dep, depPath)).To(Succeed())
-
-			Expect(dep.URI).To(Equal("file://" + depPath))
-			Expect(dep.SHA256).To(Equal("84efae3d2c9ebecf21fe40ad397ba46ec8b0cc71155ac309f72e03f1347bc8e8"))
+			for _, file := range desiredBPFiles {
+				Expect(filepath.Join(tempDir, file)).To(BeAnExistingFile())
+			}
 		})
 	})
 }

@@ -1,9 +1,6 @@
 package packager
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,9 +10,12 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/cnb2cf/metadata"
+	_ "github.com/cloudfoundry/cnb2cf/statik"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libbuildpack/packager"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
+	"github.com/pkg/errors"
+	"github.com/rakyll/statik/fs"
 )
 
 var DefaultCacheDir = filepath.Join(os.Getenv("HOME"), ".cnb2cf", "cache")
@@ -24,7 +24,7 @@ type Packager struct {
 	Dev bool
 }
 
-func (p *Packager) InstallCNBSource(dep metadata.V2Dependency, dest string) error {
+func (p *Packager) InstallDependency(dep metadata.Dependency, dest string, source bool) error {
 	if p.Dev {
 		info, err := os.Stat(dep.Source)
 		exists := !os.IsNotExist(err)
@@ -40,14 +40,21 @@ func (p *Packager) InstallCNBSource(dep metadata.V2Dependency, dest string) erro
 		}
 	}
 
-	if err := packager.DownloadFromURI(dep.Source, dest); err != nil {
+	uri := dep.Source
+	sha := dep.SourceSHA256
+	if !source {
+		uri = dep.URI
+		sha = dep.SHA256
+	}
+
+	if err := packager.DownloadFromURI(uri, dest); err != nil {
 		return err
 	}
 
-	return libbuildpack.CheckSha256(dest, dep.SourceSHA256)
+	return libbuildpack.CheckSha256(dest, sha)
 }
 
-func (p *Packager) ExtractCNBSource(dep metadata.V2Dependency, src, dstDir string) error {
+func (p *Packager) ExtractCNBSource(dep metadata.Dependency, src, dstDir string) error {
 	if strings.HasSuffix(dep.Source, "/") {
 		return libbuildpack.CopyDirectory(src, dstDir)
 	}
@@ -113,36 +120,34 @@ func (p *Packager) FindCNB(extractDir string) (string, error) {
 	return filepath.Dir(paths[0]), nil
 }
 
-func (p *Packager) UpdateDependency(dep *metadata.V2Dependency, depPath string) error {
-	dep.URI = fmt.Sprintf("file://%s", depPath)
-	sha, err := getSHA256(depPath)
+func (p *Packager) WriteBinFromTemplate(dir string) error {
+	binDir := filepath.Join(dir, "bin")
+	if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
+		return errors.Wrap(err, "failed to make bin directory")
+	}
+
+	statikFS, err := fs.New()
 	if err != nil {
 		return err
 	}
 
-	dep.SHA256 = hex.EncodeToString(sha[:])
+	binFiles := []string{
+		"compile",
+		"detect",
+		"finalize",
+		"release",
+		"supply",
+	}
+
+	for _, file := range binFiles {
+		output, err := fs.ReadFile(statikFS, fmt.Sprintf("/bin/%s", file))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("failed to read /bin/%s", file))
+		}
+		if err := ioutil.WriteFile(filepath.Join(binDir, file), output, os.ModePerm); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("failed to write /bin/%s", file))
+		}
+	}
+
 	return nil
-}
-
-func checkSHA256(filePath, expectedSha256 string) error {
-	sum, err := getSHA256(filePath)
-	if err != nil {
-		return err
-	}
-
-	actualSha256 := hex.EncodeToString(sum[:])
-
-	if actualSha256 != expectedSha256 {
-		return fmt.Errorf("dependency sha256 mismatch: expected sha256 %s, actual sha256 %s", expectedSha256, actualSha256)
-	}
-	return nil
-}
-
-func getSHA256(path string) ([32]byte, error) {
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	return sha256.Sum256(content), nil
 }
