@@ -15,8 +15,8 @@ github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97/go.mod h1:PXeU
 github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3 h1:meD7K9Uc60b6rnx5LvV4d5CwxDltkN1OU8dYQqq9AkQ=
 github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3/go.mod h1:9dmLtgQ6GrLr2ryO9ioYGpbc5eYL+8JBWtPj0r7HaZY=
 github.com/cloudfoundry/libcfbuildpack v1.76.0/go.mod h1:QGm+nzixn579dvQNlS7ZQET541y2hEpZ0/5uNxkQ04Y=
-github.com/cloudfoundry/libcfbuildpack v1.87.0 h1:Vw3DsyCzBE8qh+hVlP6WaRStL3oBZlYW6hmL2hqIpvI=
-github.com/cloudfoundry/libcfbuildpack v1.87.0/go.mod h1:u4rY3hScjPQg0o9TFSoXsPShiuQIqNRmAoXzQ2qPdsw=
+github.com/cloudfoundry/libcfbuildpack v1.87.1 h1:FtO4ZWUZ9lbZdgOIzjeWRrh9BHo1lvH/G8FJ3Xmq4QE=
+github.com/cloudfoundry/libcfbuildpack v1.87.1/go.mod h1:u4rY3hScjPQg0o9TFSoXsPShiuQIqNRmAoXzQ2qPdsw=
 github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a h1:A4wNiqeKqU56ZhtnzJCTyPZ1+cyu8jKtIchQ3TtxHgw=
 github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
