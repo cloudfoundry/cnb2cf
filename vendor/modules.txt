@@ -18,7 +18,7 @@ github.com/cloudfoundry/dagger
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
-# github.com/cloudfoundry/libcfbuildpack v1.86.0
+# github.com/cloudfoundry/libcfbuildpack v1.87.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
@@ -104,7 +104,7 @@ golang.org/x/net/context
 # golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20190916165910-8a69140bde95
+# golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/encoding
