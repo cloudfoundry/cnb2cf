@@ -10,12 +10,13 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/cnb2cf/metadata"
-	_ "github.com/cloudfoundry/cnb2cf/statik"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libbuildpack/packager"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
 	"github.com/pkg/errors"
 	"github.com/rakyll/statik/fs"
+
+	_ "github.com/cloudfoundry/cnb2cf/statik"
 )
 
 var DefaultCacheDir = filepath.Join(os.Getenv("HOME"), ".cnb2cf", "cache")

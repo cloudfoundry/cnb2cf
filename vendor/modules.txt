@@ -18,6 +18,7 @@ github.com/cloudfoundry/dagger
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
+github.com/cloudfoundry/libbuildpack/ansicleaner
 # github.com/cloudfoundry/libcfbuildpack v1.87.2
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
@@ -30,11 +31,8 @@ github.com/cloudfoundry/libcfbuildpack/internal
 github.com/elazarl/goproxy
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/go-playground/locales v0.12.1
-github.com/go-playground/locales
-github.com/go-playground/locales/currency
-# github.com/go-playground/universal-translator v0.16.0
-github.com/go-playground/universal-translator
+# github.com/golang/mock v1.2.0
+github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto
 # github.com/google/go-github v17.0.0+incompatible
@@ -49,8 +47,8 @@ github.com/hpcloud/tail/ratelimiter
 github.com/hpcloud/tail/util
 github.com/hpcloud/tail/watch
 github.com/hpcloud/tail/winfile
-# github.com/leodido/go-urn v1.1.0
-github.com/leodido/go-urn
+# github.com/jarcoal/httpmock v1.0.4
+github.com/jarcoal/httpmock
 # github.com/mattn/go-colorable v0.1.2
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.9
@@ -141,8 +139,6 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 # gopkg.in/fsnotify.v1 v1.4.7
 gopkg.in/fsnotify.v1
-# gopkg.in/go-playground/validator.v9 v9.29.1
-gopkg.in/go-playground/validator.v9
 # gopkg.in/jarcoal/httpmock.v1 v1.0.0-20181117152235-275e9df93516
 gopkg.in/jarcoal/httpmock.v1
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7

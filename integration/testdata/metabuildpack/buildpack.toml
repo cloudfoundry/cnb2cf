@@ -1,0 +1,33 @@
+api = "0.2"
+
+[buildpack]
+id = "org.cloudfoundry.nodejs"
+name = "Node.js Buildpack"
+version = "1.0.0"
+
+[metadata]
+include_files = ["buildpack.toml"]
+
+[[metadata.dependencies]]
+id = "lifecycle"
+version = "0.4.0"
+uri = "https://buildpacks.cloudfoundry.org/dependencies/lifecycle/lifecycle-0.4.0-any-stack-fa6792ea.tgz"
+sha256 = "fa6792ea8c9e7fcad25d76f0bbdf6e494ffdab5e0eaaec4ba1d5fff40a9c600f"
+source = "https://github.com/buildpack/lifecycle/releases/download/v0.4.0/lifecycle-v0.4.0%2Blinux.x86-64.tgz"
+source_sha256 = "fa6792ea8c9e7fcad25d76f0bbdf6e494ffdab5e0eaaec4ba1d5fff40a9c600f"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","org.cloudfoundry.stacks.cflinuxfs2"]
+
+[[metadata.dependencies]]
+id = "org.cloudfoundry.nodejs"
+sha256 = "e2fd3211ba2b43f74d56967189cee5715f338699a6b7e9c99d9a1d98df723cab"
+source = "https://github.com/cloudfoundry/nodejs-cnb/archive/v0.0.2-RC3.tar.gz"
+source_sha256 = "5e98b8d7350225f5c6d88fdfc600ceafc8ee10c54442ee9a87afcdf90666b683"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","io.buildpacks.stacks.bionic"]
+uri = "https://test-delete-me-bp.s3.amazonaws.com/nodejs-cnb/node-js-cnb-fixed.tar.gz"
+version = "1.0.0"
+
+[[order]]
+
+[[order.group]]
+id = "org.cloudfoundry.nodejs"
+version = "1.0.0"

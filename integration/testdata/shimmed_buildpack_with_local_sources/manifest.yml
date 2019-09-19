@@ -7,7 +7,7 @@ include_files:
 - bin/finalize
 - bin/release
 - bin/supply
-- buildpack.toml
+- order.toml
 - manifest.yml
 dependencies:
 - name: lifecycle

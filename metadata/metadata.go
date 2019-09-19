@@ -7,26 +7,22 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/BurntSushi/toml"
-
 	"github.com/buildpack/libbuildpack/buildpack"
-
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
 type BuildpackToml struct {
 	API      string                 `toml:"api"`
-	Info     buildpack.Info         `toml:"buildpack" validate:"required"`
-	Metadata OrderBuildpackMetadata `toml:"metadata" validate:"required"`
-	Order    []Order                `toml:"order" validate:"required"`
+	Info     buildpack.Info         `toml:"buildpack"`
+	Metadata OrderBuildpackMetadata `toml:"metadata"`
+	Order    []Order                `toml:"order"`
 }
 
 type OrderBuildpackMetadata struct {
 	IncludeFiles []string     `toml:"include_files"`
-	Dependencies []Dependency `toml:"dependencies" validate:"required"`
+	Dependencies []Dependency `toml:"dependencies"`
 }
 
 type Order struct {
@@ -34,8 +30,8 @@ type Order struct {
 }
 
 type CNBBuildpack struct {
-	ID      string `toml:"id" yaml:"id" validate:"required"`
-	Version string `toml:"version" yaml:"version" validate:"required"`
+	ID      string `toml:"id" yaml:"id"`
+	Version string `toml:"version" yaml:"version"`
 }
 
 type ManifestYAML struct {
@@ -48,9 +44,9 @@ type ManifestYAML struct {
 
 type Dependency struct {
 	Name         string   `toml:"name" yaml:"name"`
-	ID           string   `toml:"id" validate:"required"`
+	ID           string   `toml:"id"`
 	SHA256       string   `toml:"sha256" yaml:"sha256"`
-	Source       string   `toml:"source,omitempty" yaml:"source,omitempty" validate:"required"`
+	Source       string   `toml:"source,omitempty" yaml:"source,omitempty"`
 	SourceSHA256 string   `toml:"source_sha256" yaml:"source_sha256,omitempty"`
 	CFStacks     []string `toml:"stacks" yaml:"cf_stacks"`
 	URI          string   `toml:"uri" yaml:"uri"`
@@ -59,22 +55,23 @@ type Dependency struct {
 
 const Lifecycle = "lifecycle"
 
-func (d *Dependency) UpdateDependency(depPath string) error {
-	d.URI = fmt.Sprintf("file://%s", depPath)
-	sha, err := getSHA256(depPath)
+func UpdateDependency(dependency Dependency, path string) (Dependency, error) {
+	dependency.URI = fmt.Sprintf("file://%s", path)
+	sha, err := getSHA256(path)
 	if err != nil {
-		return err
+		return Dependency{}, err
 	}
 
-	d.SHA256 = hex.EncodeToString(sha[:])
+	dependency.SHA256 = hex.EncodeToString(sha[:])
 
-	for i, stack := range d.CFStacks {
+	for i, stack := range dependency.CFStacks {
 		// Translate stack from org.cloudfoundry.stacks.cflinuxfs3 to just cflinuxfs3
-		d.CFStacks[i] = strings.Split(stack, ".stacks.")[1]
+		dependency.CFStacks[i] = strings.Split(stack, ".stacks.")[1]
 	}
 
-	d.Name = d.ID
-	return nil
+	dependency.Name = dependency.ID
+
+	return dependency, nil
 }
 
 func (obp *BuildpackToml) Load(path string) error {
@@ -85,41 +82,6 @@ func (obp *BuildpackToml) Load(path string) error {
 
 	if _, err = toml.Decode(string(contents), obp); err != nil {
 		return errors.Wrap(err, "failed to decode the buildpack.toml")
-	}
-
-	return obp.Validate()
-}
-
-func (obp *BuildpackToml) Validate() error {
-	validate := validator.New()
-	err := validate.Struct(obp)
-	if err != nil {
-		return errors.Wrap(err, "failed to validate buildpack.toml")
-	}
-
-	err = validate.Struct(obp.Metadata)
-	if err != nil {
-		return errors.Wrap(err, "failed to validate buildpack.toml's metadata")
-	}
-
-	dependenciesSet := map[string]string{}
-	for _, dep := range obp.Metadata.Dependencies {
-		dependenciesSet[dep.ID] = dep.Version
-		if dep.Source == "" {
-			return fmt.Errorf("must provide a source for the dependencies")
-		}
-	}
-
-	if _, ok := dependenciesSet[Lifecycle]; !ok {
-		return fmt.Errorf("you must include a lifecycle in the dependencies")
-	}
-
-	for _, group := range obp.Order {
-		for _, entry := range group.Group {
-			if dependenciesSet[entry.ID] != entry.Version {
-				return fmt.Errorf("group entry %s with version %s is not a dependency", entry.ID, entry.Version)
-			}
-		}
 	}
 
 	return nil

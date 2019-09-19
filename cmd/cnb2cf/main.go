@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/cloudfoundry/libbuildpack"
-
 	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/cloudfoundry/cnb2cf/packager"
+	"github.com/cloudfoundry/libbuildpack"
 	cfPackager "github.com/cloudfoundry/libbuildpack/packager"
 	"github.com/google/subcommands"
 )
@@ -52,61 +52,37 @@ func (p *packageCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	var manifest metadata.ManifestYAML
 	var bpTOML metadata.BuildpackToml
-
 	if err := bpTOML.Load("buildpack.toml"); err != nil {
-		log.Printf("failed to load buildpack.toml: %s\n", err.Error())
+		log.Printf("failed to load buildpack.toml: %s\n", err)
 		return subcommands.ExitFailure
 	}
 
+	var manifest metadata.ManifestYAML
+	manifest.Initialize(bpTOML.Info.ID)
+	pkgr := packager.Packager{Dev: p.dev}
+
 	tmpDir, err := ioutil.TempDir("", "cnb2cf")
 	if err != nil {
-		log.Printf("failed to create temp dir: %s\n", err.Error())
+		log.Printf("failed to create temp dir: %s\n", err)
 		return subcommands.ExitFailure
 	}
 	defer os.RemoveAll(tmpDir)
 
-	manifest.Initialize(bpTOML.Info.ID)
-	pkgr := packager.Packager{Dev: p.dev}
+	cnbPackager := CNBPackager{
+		scratchDirectory: tmpDir,
+		packager:         pkgr,
+		cached:           p.cached,
+	}
 
 	for _, d := range bpTOML.Metadata.Dependencies {
-		downloadDir, buildDir, err := makeDirs(filepath.Join(tmpDir, d.ID))
+		dependencies, err := cnbPackager.Package(d)
 		if err != nil {
-			log.Println(err.Error())
+			log.Printf("failed to handle dependency: %s\n", err)
 			return subcommands.ExitFailure
 		}
 
-		tarFile := filepath.Join(downloadDir, filepath.Base(d.Source))
-		fromSource := true
-		if d.ID == metadata.Lifecycle {
-			tarFile = filepath.Join(buildDir, d.ID+".tgz")
-			fromSource = false
-		}
-
-		if err := pkgr.InstallDependency(d, tarFile, fromSource); err != nil {
-			log.Printf("failed to download CNB source for %s: %s\n", d.ID, err.Error())
-			return subcommands.ExitFailure
-		}
-
-		if d.ID != metadata.Lifecycle {
-			if err := pkgr.ExtractCNBSource(d, tarFile, downloadDir); err != nil {
-				log.Printf("failed to extract CNB source for %s: %s\n", d.ID, err.Error())
-				return subcommands.ExitFailure
-			}
-
-			if err := pkgr.BuildCNB(downloadDir, filepath.Join(buildDir, d.ID), p.cached, d.Version); err != nil {
-				log.Printf("failed to build CNB from source for %s: %s\n", d.ID, err.Error())
-				return subcommands.ExitFailure
-			}
-		}
-
-		if err := d.UpdateDependency(filepath.Join(buildDir, d.ID+".tgz")); err != nil {
-			log.Printf("failed to update manifest dependency with built CNB for %s: %s\n", d.ID, err.Error())
-			return subcommands.ExitFailure
-		}
-
-		manifest.Dependencies = append(manifest.Dependencies, d)
+		manifest.Dependencies = append(manifest.Dependencies, dependencies...)
 	}
 
 	// Copies current directory into tempdir for packaging
@@ -117,7 +93,6 @@ func (p *packageCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{
 	}
 	defer os.RemoveAll(dir)
 
-	log.Printf("Manifest: %v", manifest)
 	// TODO: maybe we shouldn't if exists bin dir
 	if err := pkgr.WriteBinFromTemplate(dir); err != nil {
 		log.Printf("failed to write the shim binaries from the template directory: %s\n", err.Error())
@@ -168,4 +143,68 @@ func makeDirs(root string) (string, string, error) {
 	}
 
 	return downloadDir, buildDir, nil
+}
+
+type CNBPackager struct {
+	scratchDirectory string
+	packager         packager.Packager
+	cached           bool
+}
+
+func (c CNBPackager) Package(dependency metadata.Dependency) ([]metadata.Dependency, error) {
+	downloadDir, buildDir, err := makeDirs(filepath.Join(c.scratchDirectory, dependency.ID))
+	if err != nil {
+		return nil, err
+	}
+
+	tarFile := filepath.Join(downloadDir, filepath.Base(dependency.Source))
+	fromSource := true
+	if dependency.ID == metadata.Lifecycle {
+		tarFile = filepath.Join(buildDir, dependency.ID+".tgz")
+		fromSource = false
+	}
+
+	if err := c.packager.InstallDependency(dependency, tarFile, fromSource); err != nil {
+		return nil, fmt.Errorf("failed to download cnb source for %s: %s", dependency.ID, err)
+	}
+
+	var dependencies []metadata.Dependency
+	if dependency.ID != metadata.Lifecycle {
+		if err := c.packager.ExtractCNBSource(dependency, tarFile, downloadDir); err != nil {
+			return nil, fmt.Errorf("failed to extract cnb source for %s: %s", dependency.ID, err)
+		}
+
+		if err := c.packager.BuildCNB(downloadDir, filepath.Join(buildDir, dependency.ID), c.cached, dependency.Version); err != nil {
+			return nil, fmt.Errorf("failed to build cnb from source for %s: %s", dependency.ID, err)
+		}
+
+		path, err := c.packager.FindCNB(downloadDir)
+		if err != nil {
+			panic(err)
+		}
+
+		var bpTOML metadata.BuildpackToml
+		if err := bpTOML.Load(filepath.Join(path, "buildpack.toml")); err != nil {
+			return nil, fmt.Errorf("failed to load %s: %s", filepath.Join(path, "buildpack.toml"), err)
+		}
+
+		if len(bpTOML.Order) > 0 {
+			for _, d := range bpTOML.Metadata.Dependencies {
+				children, err := c.Package(d)
+				if err != nil {
+					return nil, err
+				}
+				dependencies = append(dependencies, children...)
+			}
+		}
+	}
+
+	dependency, err = metadata.UpdateDependency(dependency, filepath.Join(buildDir, dependency.ID+".tgz"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update manifest dependency with built cnb for %s: %s", dependency.ID, err)
+	}
+
+	dependencies = append(dependencies, dependency)
+
+	return dependencies, nil
 }

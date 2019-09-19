@@ -51,7 +51,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 		it.Before(func() {
 			bpName = "shimmed_nodejs_" + cutlass.RandStringRunes(5)
-			bpDir, err = filepath.Abs(filepath.Join("testdata", "shimmed_buildpack"))
+			bpDir, err = filepath.Abs(filepath.Join("testdata", "metabuildpack"))
 			Expect(err).NotTo(HaveOccurred())
 
 			app = cutlass.New(filepath.Join("testdata", "nodejs_app"))
@@ -65,7 +65,6 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("creates a runnable online v2 shimmed buildpack", func() {
-			bpDir = filepath.Join("testdata", "shimmed_buildpack_without_manifest")
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3")
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
@@ -113,8 +112,9 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			Expect(app.GetBody("/")).To(Equal("Hello World!"))
 		})
 
-		it("creates a runnable online v2 shimmed buildpack with local sources", func() {
-			bpDir, err = filepath.Abs(filepath.Join("testdata", "shimmed_buildpack_with_local_sources"))
+		// TODO: needs to wait for the buildpack.toml from the nodejs-cnb to contain the sources
+		it.Pend("creates a runnable online v2 shimmed buildpack with local sources", func() {
+			bpDir, err = filepath.Abs(filepath.Join("testdata", "metabuildpack_dev"))
 			Expect(err).NotTo(HaveOccurred())
 
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3", "-dev")

@@ -1,0 +1,31 @@
+---
+language: SomeName
+dependencies:
+  - name: this.is.a.fake.bpA
+    version: 1.0.1
+    uri: https://a-fake-url.com/bpA.tgz
+    sha256: fe3dafab56a125b4802a3eba4993edb774a4594d22a90656e778467be828221d
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: this.is.a.fake.bpB
+    version: 1.0.2
+    uri: https://a-fake-url.com/bpB.tgz
+    sha256: c42d7ac92ebf4eac900a3b65ea6637104b97b53361fa00c226af7ef1486a27c8
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: this.is.a.fake.bpC
+    version: 1.0.2
+    uri: https://a-fake-url.com/bpC.tgz
+    sha256: 8668893f50179fc340a24b2ab131ed655fc61326b3e98c1c9eaf6def29c5e110
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: lifecycle
+    version: 1.0.3
+    uri: https://a-fake-url.com/lifecycle-bundle.tgz
+    sha256: 439b95ccf02e4f920291e67e9338d6f87b588a1eb2ce056ffe591cfe1e8d74b2
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3

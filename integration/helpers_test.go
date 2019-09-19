@@ -2,22 +2,24 @@ package integration_test
 
 import (
 	"fmt"
-	"github.com/cloudfoundry/libbuildpack"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/cloudfoundry/libbuildpack"
 )
 
 func runCNB2CF(dir string, args ...string) (string, error) {
-	rootDir, err := FindRoot()
+	root, err := FindRoot()
 	if err != nil {
 		return "", err
 	}
-	binary := filepath.Join(rootDir, "build", "cnb2cf")
-	cmd := exec.Command(binary, args...)
+
+	command := exec.Command(filepath.Join(root, "build", "cnb2cf"), args...)
 	if dir != "" {
-		cmd.Dir = dir
+		command.Dir = dir
 	}
-	output, err := cmd.CombinedOutput()
+
+	output, err := command.CombinedOutput()
 	return string(output), err
 }
 
