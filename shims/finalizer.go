@@ -29,7 +29,7 @@ var (
 	V3BuildpacksDir  = filepath.Join(string(filepath.Separator), "home", "vcap", "cnbs")
 )
 
-type Detector interface {
+type detector interface {
 	RunLifecycleDetect() error
 }
 
@@ -54,7 +54,7 @@ type Finalizer struct {
 	V3LifecycleDir  string
 	V3LauncherDir   string
 	ProfileDir      string
-	Detector        Detector
+	Detector        detector
 	Installer       Installer
 	Manifest        *libbuildpack.Manifest
 	Logger          *libbuildpack.Logger

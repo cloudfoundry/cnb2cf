@@ -19,7 +19,7 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 	var (
 		Expect func(interface{}, ...interface{}) Assertion
 
-		detector        shims.DefaultDetector
+		detector        shims.Detector
 		v3BuildpacksDir string
 		v3AppDir        string
 		tempDir         string
@@ -52,7 +52,7 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 
 		v3BuildpacksDir = filepath.Join(tempDir, "buildpacks")
 
-		detector = shims.DefaultDetector{
+		detector = shims.Detector{
 			AppDir:          v3AppDir,
 			V3BuildpacksDir: v3BuildpacksDir,
 			V3LifecycleDir:  v3LifecycleDir,

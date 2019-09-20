@@ -37,10 +37,9 @@ function shim::bin::update() {
     out_dir="${ROOT_DIR}/template/bin"
 
     pushd "${ROOT_DIR}" > /dev/null || return
-        GOOS=linux go build -ldflags="-s -w" -o "${out_dir}/detect" shims/cmd/detect/main.go
-        GOOS=linux go build -ldflags="-s -w" -o "${out_dir}/supply" shims/cmd/supply/main.go
-        GOOS=linux go build -ldflags="-s -w" -o "${out_dir}/finalize" shims/cmd/finalize/main.go
-        GOOS=linux go build -ldflags="-s -w" -o "${out_dir}/release" shims/cmd/release/main.go
+        for cmd in detect supply finalize release; do
+            GOOS=linux go build -ldflags="-s -w" -o "${out_dir}/${cmd}" "shims/${cmd}/main.go"
+        done
     popd > /dev/null || return
 }
 

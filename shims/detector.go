@@ -13,7 +13,7 @@ type Installer interface {
 	InstallLifecycle(dst string) error
 }
 
-type DefaultDetector struct {
+type Detector struct {
 	V3LifecycleDir string
 
 	AppDir string
@@ -27,7 +27,7 @@ type DefaultDetector struct {
 	Installer Installer
 }
 
-func (d DefaultDetector) Detect() error {
+func (d Detector) Detect() error {
 	if err := d.Installer.InstallCNBs(d.OrderMetadata, d.V3BuildpacksDir); err != nil {
 		return errors.Wrap(err, "failed to install buildpacks for detection")
 	}
@@ -35,7 +35,7 @@ func (d DefaultDetector) Detect() error {
 	return d.RunLifecycleDetect()
 }
 
-func (d DefaultDetector) RunLifecycleDetect() error {
+func (d Detector) RunLifecycleDetect() error {
 	if err := d.Installer.InstallLifecycle(d.V3LifecycleDir); err != nil {
 		return errors.Wrap(err, "failed to install v3 lifecycle binaries")
 	}
