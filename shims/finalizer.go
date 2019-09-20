@@ -109,15 +109,14 @@ func (f *Finalizer) Finalize() error {
 }
 
 func (f *Finalizer) GenerateOrderTOML() error {
-	result := Order{}
-
 	orderFiles, err := ioutil.ReadDir(f.OrderDir)
 	if err != nil {
 		return err
 	}
 
+	result := Order{}
 	for _, bptoml := range orderFiles {
-		currentBpToml := BuildpackTOML{}
+		var currentBpToml BuildpackTOML
 		tomlContent, err := ioutil.ReadFile(filepath.Join(f.OrderDir, bptoml.Name()))
 		if err != nil {
 			return err
@@ -126,18 +125,14 @@ func (f *Finalizer) GenerateOrderTOML() error {
 			return err
 		}
 
-		// Use the order field
-
-		for _, orderElement := range currentBpToml.Order {
-			for _, groupElem := range orderElement.Groups {
-				result.Groups = append(result.Groups, groupElem)
-			}
-		}
+		result.Groups = append(result.Groups, currentBpToml.Info)
 	}
+
 	orderFile, err := os.OpenFile(f.OrderMetadata, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return err
 	}
+	defer orderFile.Close()
 
 	orderArray := struct {
 		Orders []Order `toml:"order"`
@@ -145,7 +140,6 @@ func (f *Finalizer) GenerateOrderTOML() error {
 		Orders: []Order{result},
 	}
 
-	defer orderFile.Close()
 	return toml.NewEncoder(orderFile).Encode(orderArray)
 }
 

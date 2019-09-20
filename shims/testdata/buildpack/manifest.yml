@@ -29,3 +29,10 @@ dependencies:
     cf_stacks:
       - cflinuxfs2
       - cflinuxfs3
+  - name: org.cloudfoundry.buildpack
+    version: 1.0.0
+    uri: https://a-fake-url.com/bp.tgz
+    sha256: 661b73a8eea11c475299847238b682986bfd508a5590d3105ee19f7342b6c1ea
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3

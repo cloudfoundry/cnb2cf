@@ -61,6 +61,11 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 			Expect(err).ToNot(HaveOccurred())
 
 			httpmock.RegisterResponder("GET", "https://a-fake-url.com/bpB.tgz", httpmock.NewStringResponder(200, string(contents)))
+
+			contents, err = ioutil.ReadFile(filepath.Join("testdata", "buildpack", "bp.tgz"))
+			Expect(err).ToNot(HaveOccurred())
+
+			httpmock.RegisterResponder("GET", "https://a-fake-url.com/bp.tgz", httpmock.NewStringResponder(200, string(contents)))
 		})
 
 		it("installs the latest/unique buildpacks from an order.toml that are not already installed", func() {

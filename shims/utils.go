@@ -27,26 +27,24 @@ func parseOrderTOMLs(orders *[]Order, orderFilesDir string) error {
 	}
 
 	for _, file := range orderFiles {
-		orderTOML, err := ParseBuildpackTOML(filepath.Join(orderFilesDir, file.Name()))
+		buildpack, err := ParseBuildpackTOML(filepath.Join(orderFilesDir, file.Name()))
 		if err != nil {
 			return err
 		}
 
-		*orders = append(*orders, orderTOML...)
+		*orders = append(*orders, buildpack.Order...)
 	}
 
 	return nil
 }
 
-func ParseBuildpackTOML(path string) ([]Order, error) {
-	var buildpack struct {
-		Orders []Order `toml:"order"`
-	}
+func ParseBuildpackTOML(path string) (BuildpackTOML, error) {
+	var buildpack BuildpackTOML
 	if _, err := toml.DecodeFile(path, &buildpack); err != nil {
-		return nil, err
+		return BuildpackTOML{}, err
 	}
 
-	return buildpack.Orders, nil
+	return buildpack, nil
 }
 
 func encodeTOML(dest string, data interface{}) error {

@@ -25,13 +25,15 @@ func NewCNBInstaller(manifest *libbuildpack.Manifest) *CNBInstaller {
 }
 
 func (c *CNBInstaller) InstallCNBs(orderFile string, installDir string) error {
-	orderArray, err := ParseBuildpackTOML(orderFile)
+	buildpack, err := ParseBuildpackTOML(orderFile)
 	if err != nil {
 		return err
 	}
 
-	bpSet := make(map[string]interface{})
-	for _, order := range orderArray {
+	bpSet := map[string]interface{}{
+		buildpack.Info.ID: nil,
+	}
+	for _, order := range buildpack.Order {
 		for _, bp := range order.Groups {
 			bpSet[bp.ID] = nil
 		}

@@ -143,7 +143,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	when("WriteBinFromTemplate", func() {
-		it("Writes shim binaries", func() {
+		it("writes shim binaries", func() {
 			tempDir := os.TempDir()
 			Expect(p.WriteBinFromTemplate(tempDir)).To(Succeed())
 

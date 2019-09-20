@@ -18,16 +18,48 @@ source_sha256 = "fa6792ea8c9e7fcad25d76f0bbdf6e494ffdab5e0eaaec4ba1d5fff40a9c600
 stacks = ["org.cloudfoundry.stacks.cflinuxfs3","org.cloudfoundry.stacks.cflinuxfs2"]
 
 [[metadata.dependencies]]
-id = "org.cloudfoundry.nodejs"
-sha256 = "e2fd3211ba2b43f74d56967189cee5715f338699a6b7e9c99d9a1d98df723cab"
-source = "https://github.com/cloudfoundry/nodejs-cnb/archive/v0.0.2-RC3.tar.gz"
-source_sha256 = "5e98b8d7350225f5c6d88fdfc600ceafc8ee10c54442ee9a87afcdf90666b683"
+id = "org.cloudfoundry.node-engine"
+sha256 = "86b0f20b8595643cd1c5b66d9a157b6a872d8f4797cd162d3d301170df65c7a1"
+source = "https://github.com/cloudfoundry/node-engine-cnb/archive/v0.0.55.tar.gz"
+source_sha256 = "adab683754853b8a22b59db3b06ab95bf578b238771793ff812d66eecb4fafed"
 stacks = ["org.cloudfoundry.stacks.cflinuxfs3","io.buildpacks.stacks.bionic"]
-uri = "https://test-delete-me-bp.s3.amazonaws.com/nodejs-cnb/node-js-cnb-fixed.tar.gz"
-version = "1.0.0"
+uri = "https://buildpacks.cloudfoundry.org/dependencies/org.cloudfoundry.node-engine/org.cloudfoundry.node-engine-0.0.55-any-stack-86b0f20b.tgz"
+version = "0.0.55"
+
+[[metadata.dependencies]]
+id = "org.cloudfoundry.npm"
+sha256 = "07c7a3d5e48190d9c9fa9ccf9b3075f24168105a77f13c5b5f880b178564db4b"
+source = "https://github.com/cloudfoundry/npm-cnb/archive/v0.0.33.tar.gz"
+source_sha256 = "f537dc263c82e0d0731faca7ab8625ceb40d82e6cf9f4af13000cc56785fc518"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","io.buildpacks.stacks.bionic"]
+uri = "https://buildpacks.cloudfoundry.org/dependencies/org.cloudfoundry.npm/org.cloudfoundry.npm-0.0.33-any-stack-07c7a3d5.tgz"
+version = "0.0.33"
+
+[[metadata.dependencies]]
+id = "org.cloudfoundry.yarn"
+sha256 = "b4f3c5e5d4cadad70eda49ef5df4750c7b86a201d4fb405f9b4c3a6613da3585"
+source = "https://github.com/cloudfoundry/yarn-cnb/archive/v0.0.32.tar.gz"
+source_sha256 = "a38eb7f534931ca7a82892b2c264ae46be4dfba6f12ee322311b92ec0d4e6715"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","io.buildpacks.stacks.bionic"]
+uri = "https://buildpacks.cloudfoundry.org/dependencies/org.cloudfoundry.yarn/org.cloudfoundry.yarn-0.0.32-any-stack-b4f3c5e5.tgz"
+version = "0.0.32"
 
 [[order]]
 
 [[order.group]]
-id = "org.cloudfoundry.nodejs"
-version = "1.0.0"
+id = "org.cloudfoundry.node-engine"
+version = "0.0.55"
+
+[[order.group]]
+id = "org.cloudfoundry.yarn"
+version = "0.0.32"
+
+[[order]]
+
+[[order.group]]
+id = "org.cloudfoundry.node-engine"
+version = "0.0.55"
+
+[[order.group]]
+id = "org.cloudfoundry.npm"
+version = "0.0.33"

@@ -2,3 +2,4 @@
 .bin/
 nodejs-cnb_*
 *_buildpack-*
+/template

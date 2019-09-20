@@ -1,20 +1,21 @@
 package integration_test
 
 import (
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/cloudfoundry/cnb2cf/utils"
-
 	"github.com/cloudfoundry/dagger"
 	"github.com/cloudfoundry/libbuildpack/cutlass"
-
 	"github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
+
+	. "github.com/onsi/gomega"
 )
 
 var suite = spec.New("Integration", spec.Parallel(), spec.Report(report.Terminal{}))
@@ -44,15 +45,31 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 	when("successfully running the packaging command", func() {
 		var (
-			bpName, bpDir, shimmedBPFile string
-			app                          *cutlass.App
-			err                          error
+			bpName, bpDir, shimmedBPFile, testDir string
+			app                                   *cutlass.App
 		)
 
 		it.Before(func() {
-			bpName = "shimmed_nodejs_" + cutlass.RandStringRunes(5)
+			var err error
+			testDir, err = ioutil.TempDir("", "integration")
+			Expect(err).NotTo(HaveOccurred())
+
 			bpDir, err = filepath.Abs(filepath.Join("testdata", "metabuildpack"))
 			Expect(err).NotTo(HaveOccurred())
+
+			original, err := os.Open(filepath.Join(bpDir, "buildpack.toml"))
+			Expect(err).NotTo(HaveOccurred())
+			defer original.Close()
+
+			duplicate, err := os.Create(filepath.Join(testDir, "buildpack.toml"))
+			Expect(err).NotTo(HaveOccurred())
+			defer duplicate.Close()
+
+			_, err = io.Copy(duplicate, original)
+			Expect(err).NotTo(HaveOccurred())
+
+			bpName = "shimmed_nodejs_" + cutlass.RandStringRunes(5)
+			bpDir = testDir
 
 			app = cutlass.New(filepath.Join("testdata", "nodejs_app"))
 			app.Buildpacks = []string{bpName + "_buildpack"}
@@ -62,6 +79,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			Expect(app.Destroy()).To(Succeed())
 			Expect(cutlass.DeleteBuildpack(bpName)).To(Succeed())
 			Expect(os.Remove(shimmedBPFile)).To(Succeed())
+			Expect(os.RemoveAll(testDir)).To(Succeed())
 		})
 
 		it("creates a runnable online v2 shimmed buildpack", func() {
@@ -114,6 +132,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 		// TODO: needs to wait for the buildpack.toml from the nodejs-cnb to contain the sources
 		it.Pend("creates a runnable online v2 shimmed buildpack with local sources", func() {
+			var err error
 			bpDir, err = filepath.Abs(filepath.Join("testdata", "metabuildpack_dev"))
 			Expect(err).NotTo(HaveOccurred())
 

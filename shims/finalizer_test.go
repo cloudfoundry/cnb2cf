@@ -157,16 +157,17 @@ version = "4.5.6"
 			Expect(finalizer.GenerateOrderTOML()).To(Succeed())
 
 			Expect(finalizer.OrderMetadata).To(BeAnExistingFile())
-			order, err := shims.ParseBuildpackTOML(finalizer.OrderMetadata)
+			buildpack, err := shims.ParseBuildpackTOML(finalizer.OrderMetadata)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(order).To(HaveLen(1))
-			Expect(order[0].Groups).To(HaveLen(2))
-			firstBP := order[0].Groups[0]
-			secondBP := order[0].Groups[1]
 
-			Expect(firstBP.ID).To(Equal("org.some-org.first-buildpack"))
+			Expect(buildpack.Order).To(HaveLen(1))
+			Expect(buildpack.Order[0].Groups).To(HaveLen(2))
+			firstBP := buildpack.Order[0].Groups[0]
+			secondBP := buildpack.Order[0].Groups[1]
+
+			Expect(firstBP.ID).To(Equal("org.some-org.first-buildpack.shimmed"))
 			Expect(firstBP.Version).To(Equal("1.2.3"))
-			Expect(secondBP.ID).To(Equal("org.some-org.second-buildpack"))
+			Expect(secondBP.ID).To(Equal("org.some-org.second-buildpack.shimmed"))
 			Expect(secondBP.Version).To(Equal("4.5.6"))
 		})
 	})

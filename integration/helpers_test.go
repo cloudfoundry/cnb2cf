@@ -1,7 +1,10 @@
 package integration_test
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -19,8 +22,12 @@ func runCNB2CF(dir string, args ...string) (string, error) {
 		command.Dir = dir
 	}
 
-	output, err := command.CombinedOutput()
-	return string(output), err
+	buffer := bytes.NewBuffer([]byte{})
+	command.Stdout = io.MultiWriter(os.Stdout, buffer)
+	command.Stderr = io.MultiWriter(os.Stderr, buffer)
+
+	err = command.Run()
+	return buffer.String(), err
 }
 
 func FindRoot() (string, error) {

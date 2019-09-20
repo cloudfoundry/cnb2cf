@@ -92,6 +92,7 @@ func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool, version s
 	if err := packager.Create(cached); err != nil {
 		return err
 	}
+
 	return packager.Archive()
 }
 
