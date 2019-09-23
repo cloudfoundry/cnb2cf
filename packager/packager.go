@@ -41,11 +41,11 @@ func (p *Packager) InstallDependency(dep metadata.Dependency, dest string, sourc
 		}
 	}
 
-	uri := dep.Source
-	sha := dep.SourceSHA256
-	if !source {
-		uri = dep.URI
-		sha = dep.SHA256
+	uri := dep.URI
+	sha := dep.SHA256
+	if source {
+		uri = dep.Source
+		sha = dep.SourceSHA256
 	}
 
 	if err := packager.DownloadFromURI(uri, dest); err != nil {

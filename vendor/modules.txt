@@ -102,10 +102,10 @@ github.com/tidwall/match
 github.com/xi2/xz
 # golang.org/x/net v0.0.0-20190916140828-c8589233b77d
 golang.org/x/net/html/charset
-golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
-golang.org/x/net/context
+golang.org/x/net/context/ctxhttp
 golang.org/x/net/html/atom
+golang.org/x/net/context
 # golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
 golang.org/x/oauth2
 golang.org/x/oauth2/internal

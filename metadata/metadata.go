@@ -7,32 +7,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/BurntSushi/toml"
-	"github.com/buildpack/libbuildpack/buildpack"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
-
-type BuildpackToml struct {
-	API      string                 `toml:"api"`
-	Info     buildpack.Info         `toml:"buildpack"`
-	Metadata OrderBuildpackMetadata `toml:"metadata"`
-	Order    []Order                `toml:"order"`
-}
-
-type OrderBuildpackMetadata struct {
-	IncludeFiles []string     `toml:"include_files"`
-	Dependencies []Dependency `toml:"dependencies"`
-}
-
-type Order struct {
-	Group []CNBBuildpack `toml:"group"`
-}
-
-type CNBBuildpack struct {
-	ID      string `toml:"id" yaml:"id"`
-	Version string `toml:"version" yaml:"version"`
-}
 
 type ManifestYAML struct {
 	Language     string       `yaml:"language"`
@@ -72,19 +48,6 @@ func UpdateDependency(dependency Dependency, path string) (Dependency, error) {
 	dependency.Name = dependency.ID
 
 	return dependency, nil
-}
-
-func (obp *BuildpackToml) Load(path string) error {
-	contents, err := ioutil.ReadFile(path)
-	if err != nil {
-		return errors.Wrap(err, "failed to read the buildpack.toml")
-	}
-
-	if _, err = toml.Decode(string(contents), obp); err != nil {
-		return errors.Wrap(err, "failed to decode the buildpack.toml")
-	}
-
-	return nil
 }
 
 func (m *ManifestYAML) Initialize(language string) {

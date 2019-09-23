@@ -11,7 +11,6 @@ import (
 
 func main() {
 	subcommands.Register(&commands.Package{}, "")
-
 	flag.Parse()
 	os.Exit(int(subcommands.Execute(context.Background())))
 }
