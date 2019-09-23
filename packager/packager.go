@@ -1,7 +1,10 @@
 package packager
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cloudfoundry/cnb2cf/metadata"
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libbuildpack/packager"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
@@ -25,7 +28,7 @@ type Packager struct {
 	Dev bool
 }
 
-func (p *Packager) InstallDependency(dep metadata.Dependency, dest string, source bool) error {
+func (p *Packager) InstallDependency(dep cloudnative.BuildpackMetadataDependency, dest string, source bool) error {
 	if p.Dev {
 		info, err := os.Stat(dep.Source)
 		exists := !os.IsNotExist(err)
@@ -55,7 +58,7 @@ func (p *Packager) InstallDependency(dep metadata.Dependency, dest string, sourc
 	return libbuildpack.CheckSha256(dest, sha)
 }
 
-func (p *Packager) ExtractCNBSource(dep metadata.Dependency, src, dstDir string) error {
+func (p *Packager) ExtractCNBSource(dep cloudnative.BuildpackMetadataDependency, src, dstDir string) error {
 	if strings.HasSuffix(dep.Source, "/") {
 		return libbuildpack.CopyDirectory(src, dstDir)
 	}
@@ -71,10 +74,10 @@ func (p *Packager) ExtractCNBSource(dep metadata.Dependency, src, dstDir string)
 	return libbuildpack.ExtractTarGz(src, dstDir)
 }
 
-func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool, version string) error {
+func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool, version string) (string, string, error) {
 	foundSrc, err := p.FindCNB(extractDir)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	usr, err := user.Current()
@@ -86,14 +89,31 @@ func (p *Packager) BuildCNB(extractDir, outputDir string, cached bool, version s
 
 	packager, err := cnbpackager.New(foundSrc, outputDir, version, globalCacheDir)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	if err := packager.Create(cached); err != nil {
-		return err
+		return "", "", err
 	}
 
-	return packager.Archive()
+	if err := packager.Archive(); err != nil {
+		return "", "", err
+	}
+
+	path := fmt.Sprintf("%s.tgz", outputDir)
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	hash := sha256.New()
+	_, err = io.Copy(hash, file)
+	if err != nil {
+		panic(err)
+	}
+
+	return path, hex.EncodeToString(hash.Sum(nil)), nil
 }
 
 // FindCNB returns the path to the cnb source if it can find a single buildpack.toml

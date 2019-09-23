@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cloudfoundry/cnb2cf/metadata"
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/packager"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
@@ -49,12 +49,12 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 
 		it("installs the remote CNB source URI even if dev flag set", func() {
 			p.Dev = true
-			dep := metadata.Dependency{
-				Name:         "some-cnb",
+			dep := cloudnative.BuildpackMetadataDependency{
+				ID:           "some-cnb",
 				Version:      "1.0.0",
 				Source:       "https://example.com/cnb.tgz",
 				SourceSHA256: "d1b2a59fbea7e20077af9f91b27e95e865061b270be03ff539ab3b73587882e8",
-				CFStacks:     []string{"stack"},
+				Stacks:       []string{"stack"},
 			}
 
 			httpmock.RegisterResponder("GET", "https://example.com/cnb.tgz",
@@ -68,12 +68,12 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		it("copies if the CNB source is a dir", func() {
 			p.Dev = true
 
-			dep := metadata.Dependency{
-				Name:         "some-cnb",
+			dep := cloudnative.BuildpackMetadataDependency{
+				ID:           "some-cnb",
 				Version:      "1.0.0",
 				Source:       "testdata/fake-dir/",
 				SourceSHA256: "",
-				CFStacks:     []string{"stack"},
+				Stacks:       []string{"stack"},
 			}
 
 			dstFile := filepath.Join(tmpDir, "some-dst")
@@ -85,7 +85,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 
 	when("ExtractCNBSource", func() {
 		it("extracts a tgz file", func() {
-			dep := metadata.Dependency{
+			dep := cloudnative.BuildpackMetadataDependency{
 				Source: "https://example.com/cnb.tgz",
 			}
 
@@ -96,7 +96,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("extracts a zip file", func() {
-			dep := metadata.Dependency{
+			dep := cloudnative.BuildpackMetadataDependency{
 				Source: "https://example.com/cnb.zip",
 			}
 
@@ -107,7 +107,7 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 		})
 
 		it("copies a directory", func() {
-			dep := metadata.Dependency{
+			dep := cloudnative.BuildpackMetadataDependency{
 				Source: "file:///tmp/foo/",
 			}
 

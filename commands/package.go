@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
-	"github.com/cloudfoundry/cnb2cf/metadata"
 	"github.com/cloudfoundry/cnb2cf/packager"
 	"github.com/cloudfoundry/libbuildpack"
 	cfPackager "github.com/cloudfoundry/libbuildpack/packager"
@@ -72,10 +71,6 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		panic(err)
 	}
 
-	// create and "initialize" manifest.yml, why do we need a manifest.yml?
-	var manifest metadata.ManifestYAML
-	manifest.Initialize(buildpack.Info.ID)
-
 	// initialize packager
 	pkgr := packager.Packager{Dev: p.dev}
 	path, err := filepath.Abs(".")
@@ -84,23 +79,35 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	}
 
 	// build the top-level language family CNB
-	err = pkgr.BuildCNB(path, filepath.Join(buildDir, buildpack.Info.ID), p.cached, buildpack.Info.Version)
+	tarballPath, sha256, err := pkgr.BuildCNB(path, filepath.Join(buildDir, buildpack.Info.ID), p.cached, buildpack.Info.Version)
 	if err != nil {
 		panic(err)
 	}
 
-	// update the top-level language family CNB with file path and SHA details
-	dependency, err := metadata.UpdateDependency(metadata.Dependency{
-		ID:       buildpack.Info.ID,
-		Version:  buildpack.Info.Version,
-		CFStacks: []string{"org.cloudfoundry.stacks." + p.stack},
-	}, filepath.Join(buildDir, buildpack.Info.ID+".tgz"))
-	if err != nil {
-		panic(err)
+	// create and "initialize" manifest.yml, why do we need a manifest.yml?
+	var manifest cloudnative.Manifest
+	manifest.IncludeFiles = []string{
+		"bin/compile",
+		"bin/detect",
+		"bin/finalize",
+		"bin/release",
+		"bin/supply",
+		"buildpack.toml",
+		"manifest.yml",
+		"VERSION",
 	}
+	splitLanguage := strings.Split(buildpack.Info.ID, ".")
+	manifest.Language = splitLanguage[len(splitLanguage)-1]
 
 	// update manifest with top-level CNB dependency
-	manifest.Dependencies = append(manifest.Dependencies, dependency)
+	manifest.Dependencies = append(manifest.Dependencies, cloudnative.ManifestDependency{
+		ID:      buildpack.Info.ID,
+		Name:    buildpack.Info.ID,
+		Version: buildpack.Info.Version,
+		URI:     fmt.Sprintf("file://%s", tarballPath),
+		SHA256:  sha256,
+		Stacks:  []string{p.stack},
+	})
 
 	// create the CNB packager
 	dependencyPackager := NewDependencyPackager(tmpDir, pkgr, p.cached)
@@ -114,7 +121,7 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		}
 
 		for _, dep := range dependencies {
-			manifest.Dependencies = append(manifest.Dependencies, metadata.Dependency{
+			manifest.Dependencies = append(manifest.Dependencies, cloudnative.ManifestDependency{
 				Name:         dep.ID,
 				ID:           dep.ID,
 				Version:      dep.Version,
@@ -122,7 +129,7 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 				SHA256:       dep.SHA256,
 				Source:       dep.Source,
 				SourceSHA256: dep.SourceSHA256,
-				CFStacks:     dep.Stacks,
+				Stacks:       dep.Stacks,
 			})
 		}
 	}
@@ -142,7 +149,7 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	}
 
 	// write out manifest file, TODO: do we still need this?
-	if err := manifest.Write(filepath.Join(dir, "manifest.yml")); err != nil {
+	if err := cloudnative.WriteManifest(manifest, filepath.Join(dir, "manifest.yml")); err != nil {
 		log.Printf("failed to update manifest: %s\n", err.Error())
 		return subcommands.ExitFailure
 	}
@@ -189,16 +196,6 @@ func NewDependencyPackager(scratchDirectory string, packager packager.Packager, 
 }
 
 func (p DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDependency) ([]cloudnative.BuildpackMetadataDependency, error) {
-	depReplaceMe := metadata.Dependency{
-		ID:           dependency.ID,
-		Version:      dependency.Version,
-		URI:          dependency.URI,
-		SHA256:       dependency.SHA256,
-		Source:       dependency.Source,
-		SourceSHA256: dependency.SourceSHA256,
-		CFStacks:     dependency.Stacks,
-	}
-
 	downloadDir, buildDir, err := makeDirs(filepath.Join(p.scratchDirectory, dependency.ID))
 	if err != nil {
 		return nil, err
@@ -206,23 +203,24 @@ func (p DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDepe
 
 	tarFile := filepath.Join(downloadDir, filepath.Base(dependency.Source))
 	fromSource := true
-	if dependency.ID == metadata.Lifecycle {
+	if dependency.ID == cloudnative.Lifecycle {
 		tarFile = filepath.Join(buildDir, dependency.ID+".tgz")
 		fromSource = false
 	}
 
-	if err := p.packager.InstallDependency(depReplaceMe, tarFile, fromSource); err != nil {
+	if err := p.packager.InstallDependency(dependency, tarFile, fromSource); err != nil {
 		return nil, fmt.Errorf("failed to download cnb source for %s: %s", dependency.ID, err)
 	}
 
 	var dependencies []cloudnative.BuildpackMetadataDependency
-	if dependency.ID != metadata.Lifecycle {
-		if err := p.packager.ExtractCNBSource(depReplaceMe, tarFile, downloadDir); err != nil {
+	if dependency.ID != cloudnative.Lifecycle {
+		if err := p.packager.ExtractCNBSource(dependency, tarFile, downloadDir); err != nil {
 			return nil, fmt.Errorf("failed to extract cnb source for %s: %s", dependency.ID, err)
 		}
 
-		if err := p.packager.BuildCNB(downloadDir, filepath.Join(buildDir, dependency.ID), p.cached, dependency.Version); err != nil {
-			return nil, fmt.Errorf("failed to build cnb from source for %s: %s", dependency.ID, err)
+		tarballPath, sha256, err := p.packager.BuildCNB(downloadDir, filepath.Join(buildDir, dependency.ID), p.cached, dependency.Version)
+		if err != nil {
+			panic(err)
 		}
 
 		path, err := p.packager.FindCNB(downloadDir)
@@ -245,22 +243,16 @@ func (p DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDepe
 				dependencies = append(dependencies, children...)
 			}
 		}
+		dependency.URI = fmt.Sprintf("file://%s", tarballPath)
+		dependency.SHA256 = sha256
 	}
 
-	depReplaceMe, err = metadata.UpdateDependency(depReplaceMe, filepath.Join(buildDir, dependency.ID+".tgz"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to update manifest dependency with built cnb for %s: %s", dependency.ID, err)
+	for i, stack := range dependency.Stacks {
+		// Translate stack from org.cloudfoundry.stacks.cflinuxfs3 to just cflinuxfs3
+		dependency.Stacks[i] = strings.Split(stack, ".stacks.")[1]
 	}
 
-	dependencies = append(dependencies, cloudnative.BuildpackMetadataDependency{
-		ID:           depReplaceMe.ID,
-		Version:      depReplaceMe.Version,
-		URI:          depReplaceMe.URI,
-		SHA256:       depReplaceMe.SHA256,
-		Source:       depReplaceMe.Source,
-		SourceSHA256: depReplaceMe.SourceSHA256,
-		Stacks:       depReplaceMe.CFStacks,
-	})
+	dependencies = append(dependencies, dependency)
 
 	return dependencies, nil
 }

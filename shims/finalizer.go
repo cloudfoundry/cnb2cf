@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/cnb2cf/metadata"
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/pkg/errors"
 
@@ -277,14 +277,16 @@ func (f *Finalizer) RenameEnvDir(dst string) error {
 
 func (f *Finalizer) UpdateGroupTOML(buildpackID string) error {
 	var groupMetadata struct {
-		Buildpacks []metadata.CNBBuildpack `toml:"buildpacks"`
+		Buildpacks []cloudnative.BuildpackOrderGroup `toml:"buildpacks"`
 	}
 
 	if _, err := toml.DecodeFile(f.GroupMetadata, &groupMetadata); err != nil {
 		return err
 	}
 
-	groupMetadata.Buildpacks = append([]metadata.CNBBuildpack{{ID: buildpackID}}, groupMetadata.Buildpacks...)
+	groupMetadata.Buildpacks = append([]cloudnative.BuildpackOrderGroup{
+		{ID: buildpackID},
+	}, groupMetadata.Buildpacks...)
 
 	return encodeTOML(f.GroupMetadata, groupMetadata)
 }
