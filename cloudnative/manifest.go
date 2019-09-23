@@ -2,6 +2,7 @@ package cloudnative
 
 import (
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -20,6 +21,39 @@ type ManifestDependency struct {
 	Version      string   `yaml:"version"`
 	Source       string   `yaml:"source"`
 	SourceSHA256 string   `yaml:"source_sha256"`
+}
+
+func NewManifest(id string, dependencies []BuildpackMetadataDependency) Manifest {
+	var manifestDependencies []ManifestDependency
+	for _, dependency := range dependencies {
+		manifestDependencies = append(manifestDependencies, ManifestDependency{
+			ID:           dependency.ID,
+			Name:         dependency.ID,
+			Version:      dependency.Version,
+			URI:          dependency.URI,
+			SHA256:       dependency.SHA256,
+			Source:       dependency.Source,
+			SourceSHA256: dependency.SourceSHA256,
+			Stacks:       dependency.Stacks,
+		})
+	}
+
+	parts := strings.Split(id, ".")
+
+	return Manifest{
+		Language: parts[len(parts)-1],
+		IncludeFiles: []string{
+			"bin/compile",
+			"bin/detect",
+			"bin/finalize",
+			"bin/release",
+			"bin/supply",
+			"buildpack.toml",
+			"manifest.yml",
+			"VERSION",
+		},
+		Dependencies: manifestDependencies,
+	}
 }
 
 func WriteManifest(manifest Manifest, path string) error {

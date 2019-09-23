@@ -32,6 +32,47 @@ func testManifest(t *testing.T, when spec.G, it spec.S) {
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 
+	when("NewManifest", func() {
+		it("returns a new manifest with the given buildpack details and dependencies", func() {
+			manifest := cloudnative.NewManifest("org.cloudfoundry.some-language", []cloudnative.BuildpackMetadataDependency{
+				{
+					ID:           "some-dependency",
+					Version:      "some-dependency-version",
+					URI:          "some-dependency-uri",
+					SHA256:       "some-dependency-sha256",
+					Source:       "some-dependency-source",
+					SourceSHA256: "some-dependency-source-sha256",
+					Stacks:       []string{"some-stack"},
+				},
+			})
+			Expect(manifest).To(Equal(cloudnative.Manifest{
+				Language: "some-language",
+				IncludeFiles: []string{
+					"bin/compile",
+					"bin/detect",
+					"bin/finalize",
+					"bin/release",
+					"bin/supply",
+					"buildpack.toml",
+					"manifest.yml",
+					"VERSION",
+				},
+				Dependencies: []cloudnative.ManifestDependency{
+					{
+						Name:         "some-dependency",
+						ID:           "some-dependency",
+						SHA256:       "some-dependency-sha256",
+						Stacks:       []string{"some-stack"},
+						URI:          "some-dependency-uri",
+						Version:      "some-dependency-version",
+						Source:       "some-dependency-source",
+						SourceSHA256: "some-dependency-source-sha256",
+					},
+				},
+			}))
+		})
+	})
+
 	when("WriteManifest", func() {
 		it("writes a manifest to a file", func() {
 			path := filepath.Join(tmpDir, "manifest.yml")

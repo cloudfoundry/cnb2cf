@@ -84,25 +84,10 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		panic(err)
 	}
 
-	// create and "initialize" manifest.yml, why do we need a manifest.yml?
-	var manifest cloudnative.Manifest
-	manifest.IncludeFiles = []string{
-		"bin/compile",
-		"bin/detect",
-		"bin/finalize",
-		"bin/release",
-		"bin/supply",
-		"buildpack.toml",
-		"manifest.yml",
-		"VERSION",
-	}
-	splitLanguage := strings.Split(buildpack.Info.ID, ".")
-	manifest.Language = splitLanguage[len(splitLanguage)-1]
+	var dependencies []cloudnative.BuildpackMetadataDependency
 
-	// update manifest with top-level CNB dependency
-	manifest.Dependencies = append(manifest.Dependencies, cloudnative.ManifestDependency{
+	dependencies = append(dependencies, cloudnative.BuildpackMetadataDependency{
 		ID:      buildpack.Info.ID,
-		Name:    buildpack.Info.ID,
 		Version: buildpack.Info.Version,
 		URI:     fmt.Sprintf("file://%s", tarballPath),
 		SHA256:  sha256,
@@ -114,15 +99,14 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 
 	// package child dependencies of the top-level CNB
 	for _, dependency := range buildpack.Metadata.Dependencies {
-		dependencies, err := dependencyPackager.Package(dependency)
+		deps, err := dependencyPackager.Package(dependency)
 		if err != nil {
 			log.Printf("failed to handle dependency: %s\n", err)
 			return subcommands.ExitFailure
 		}
 
-		for _, dep := range dependencies {
-			manifest.Dependencies = append(manifest.Dependencies, cloudnative.ManifestDependency{
-				Name:         dep.ID,
+		for _, dep := range deps {
+			dependencies = append(dependencies, cloudnative.BuildpackMetadataDependency{
 				ID:           dep.ID,
 				Version:      dep.Version,
 				URI:          dep.URI,
@@ -148,7 +132,7 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		return subcommands.ExitFailure
 	}
 
-	// write out manifest file, TODO: do we still need this?
+	manifest := cloudnative.NewManifest(buildpack.Info.ID, dependencies)
 	if err := cloudnative.WriteManifest(manifest, filepath.Join(dir, "manifest.yml")); err != nil {
 		log.Printf("failed to update manifest: %s\n", err.Error())
 		return subcommands.ExitFailure
