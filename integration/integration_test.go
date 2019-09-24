@@ -86,7 +86,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3")
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
-			shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cflinuxfs3-v1.0.0.zip")
+			shimmedBPFile = filepath.Join(bpDir, "cf-nodejs_buildpack-cflinuxfs3-v1.0.0.zip")
 
 			desiredBPFiles := []string{
 				"buildpack.toml",
@@ -121,7 +121,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3", "-cached")
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
-			shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cached-cflinuxfs3-v1.0.0.zip")
+			shimmedBPFile = filepath.Join(bpDir, "cf-nodejs_buildpack-cached-cflinuxfs3-v1.0.0.zip")
 			Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
 
 			Expect(app.Push()).To(Succeed())
@@ -139,7 +139,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3", "-dev")
 			Expect(err).NotTo(HaveOccurred(), string(output))
 
-			shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cflinuxfs3-v1.0.0.zip")
+			shimmedBPFile = filepath.Join(bpDir, "cf-nodejs_buildpack-cflinuxfs3-v1.0.0.zip")
 			Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
 
 			Expect(app.Push()).To(Succeed())
