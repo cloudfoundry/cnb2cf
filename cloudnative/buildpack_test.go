@@ -32,7 +32,7 @@ func testBuildpack(t *testing.T, when spec.G, it spec.S) {
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 
-	when("Parse", func() {
+	when("ParseBuildpack", func() {
 		it("parses a buildpack.toml into a Buildpack", func() {
 			path := filepath.Join(tmpDir, "buildpack.toml")
 			contents := `

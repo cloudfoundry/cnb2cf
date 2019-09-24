@@ -11,10 +11,12 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
+	"github.com/cloudfoundry/cnb2cf/cloudnative/untested"
 	"github.com/cloudfoundry/cnb2cf/packager"
 	"github.com/cloudfoundry/libbuildpack"
 	cfPackager "github.com/cloudfoundry/libbuildpack/packager"
 	"github.com/google/subcommands"
+	"github.com/rakyll/statik/fs"
 )
 
 const PackageUsage = `package -stack <stack> [-cached] [-version <version>] [-cachedir <path to cachedir>]:
@@ -71,15 +73,13 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		panic(err)
 	}
 
-	// initialize packager
-	pkgr := packager.Packager{Dev: p.dev}
 	path, err := filepath.Abs(".")
 	if err != nil {
 		panic(err)
 	}
 
 	// build the top-level language family CNB
-	tarballPath, sha256, err := pkgr.BuildCNB(path, filepath.Join(buildDir, buildpack.Info.ID), p.cached, buildpack.Info.Version)
+	tarballPath, sha256, err := packager.BuildCNB(path, filepath.Join(buildDir, buildpack.Info.ID), p.cached, buildpack.Info.Version)
 	if err != nil {
 		panic(err)
 	}
@@ -94,8 +94,16 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		Stacks:  []string{p.stack},
 	})
 
-	// create the CNB packager
-	dependencyPackager := NewDependencyPackager(tmpDir, pkgr, p.cached)
+	// setup
+	statikFS, err := fs.New()
+	if err != nil {
+		panic(err)
+	}
+
+	filesystem := untested.NewFilesystem(statikFS)
+	dependencyInstaller := cloudnative.NewDependencyInstaller()
+	dependencyPackager := untested.NewDependencyPackager(tmpDir, p.cached, p.dev, dependencyInstaller)
+	lifecycleHooks := cloudnative.NewLifecycleHooks(filesystem)
 
 	// package child dependencies of the top-level CNB
 	for _, dependency := range buildpack.Metadata.Dependencies {
@@ -126,10 +134,10 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	}
 	defer os.RemoveAll(dir)
 
-	// TODO: maybe we shouldn't if exists bin dir
-	if err := pkgr.WriteBinFromTemplate(dir); err != nil {
-		log.Printf("failed to write the shim binaries from the template directory: %s\n", err.Error())
-		return subcommands.ExitFailure
+	for _, hook := range []string{"compile", "detect", "finalize", "release", "supply"} {
+		if err := lifecycleHooks.Install(hook, dir); err != nil {
+			panic(err)
+		}
 	}
 
 	manifest := cloudnative.NewManifest(buildpack.Info.ID, dependencies)
@@ -163,94 +171,4 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	log.Printf("Packaged Shimmed Buildpack at: %s", filepath.Base(newName))
 
 	return subcommands.ExitSuccess
-}
-
-type DependencyPackager struct {
-	scratchDirectory string
-	packager         packager.Packager
-	cached           bool
-}
-
-func NewDependencyPackager(scratchDirectory string, packager packager.Packager, cached bool) DependencyPackager {
-	return DependencyPackager{
-		scratchDirectory: scratchDirectory,
-		packager:         packager,
-		cached:           cached,
-	}
-}
-
-func (p DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDependency) ([]cloudnative.BuildpackMetadataDependency, error) {
-	downloadDir, buildDir, err := makeDirs(filepath.Join(p.scratchDirectory, dependency.ID))
-	if err != nil {
-		return nil, err
-	}
-
-	tarFile := filepath.Join(downloadDir, filepath.Base(dependency.Source))
-	fromSource := true
-	if dependency.ID == cloudnative.Lifecycle {
-		tarFile = filepath.Join(buildDir, dependency.ID+".tgz")
-		fromSource = false
-	}
-
-	if err := p.packager.InstallDependency(dependency, tarFile, fromSource); err != nil {
-		return nil, fmt.Errorf("failed to download cnb source for %s: %s", dependency.ID, err)
-	}
-
-	var dependencies []cloudnative.BuildpackMetadataDependency
-	if dependency.ID != cloudnative.Lifecycle {
-		if err := p.packager.ExtractCNBSource(dependency, tarFile, downloadDir); err != nil {
-			return nil, fmt.Errorf("failed to extract cnb source for %s: %s", dependency.ID, err)
-		}
-
-		tarballPath, sha256, err := p.packager.BuildCNB(downloadDir, filepath.Join(buildDir, dependency.ID), p.cached, dependency.Version)
-		if err != nil {
-			panic(err)
-		}
-
-		path, err := p.packager.FindCNB(downloadDir)
-		if err != nil {
-			panic(err)
-		}
-
-		buildpack, err := cloudnative.ParseBuildpack(filepath.Join(path, "buildpack.toml"))
-		if err != nil {
-			panic(err)
-		}
-
-		if len(buildpack.Orders) > 0 {
-			for _, d := range buildpack.Metadata.Dependencies {
-				children, err := p.Package(d)
-				if err != nil {
-					return nil, err
-				}
-
-				dependencies = append(dependencies, children...)
-			}
-		}
-		dependency.URI = fmt.Sprintf("file://%s", tarballPath)
-		dependency.SHA256 = sha256
-	}
-
-	for i, stack := range dependency.Stacks {
-		// Translate stack from org.cloudfoundry.stacks.cflinuxfs3 to just cflinuxfs3
-		dependency.Stacks[i] = strings.Split(stack, ".stacks.")[1]
-	}
-
-	dependencies = append(dependencies, dependency)
-
-	return dependencies, nil
-}
-
-func makeDirs(root string) (string, string, error) {
-	downloadDir := filepath.Join(root, "download")
-	if err := os.MkdirAll(downloadDir, 0777); err != nil {
-		return "", "", err
-	}
-
-	buildDir := filepath.Join(root, "build")
-	if err := os.MkdirAll(buildDir, 0777); err != nil {
-		return "", "", err
-	}
-
-	return downloadDir, buildDir, nil
 }
