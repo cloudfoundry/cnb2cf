@@ -53,18 +53,28 @@ func (p *Package) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	buildpack, err := cloudnative.ParseBuildpack("buildpack.toml")
+	// START setup
+	tmpDir, err := ioutil.TempDir("", "cnb2cf")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	statikFS, err := fs.New()
 	if err != nil {
 		panic(err)
 	}
 
-	// create temporary directory, for what?
-	tmpDir, err := ioutil.TempDir("", "cnb2cf")
+	filesystem := cloudnative.NewFilesystem(statikFS)
+	dependencyInstaller := cloudnative.NewDependencyInstaller()
+	dependencyPackager := untested.NewDependencyPackager(tmpDir, p.cached, p.dev, dependencyInstaller)
+	lifecycleHooks := cloudnative.NewLifecycleHooks(filesystem)
+	// END setup
+
+	buildpack, err := cloudnative.ParseBuildpack("buildpack.toml")
 	if err != nil {
-		log.Printf("failed to create temp dir: %s\n", err)
-		return subcommands.ExitFailure
+		panic(err)
 	}
-	defer os.RemoveAll(tmpDir)
 
 	// create "build" directory inside temp dir
 	buildDir := filepath.Join(tmpDir, buildpack.Info.ID, "build")
@@ -93,17 +103,6 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		SHA256:  sha256,
 		Stacks:  []string{p.stack},
 	})
-
-	// setup
-	statikFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
-
-	filesystem := untested.NewFilesystem(statikFS)
-	dependencyInstaller := cloudnative.NewDependencyInstaller()
-	dependencyPackager := untested.NewDependencyPackager(tmpDir, p.cached, p.dev, dependencyInstaller)
-	lifecycleHooks := cloudnative.NewLifecycleHooks(filesystem)
 
 	// package child dependencies of the top-level CNB
 	for _, dependency := range buildpack.Metadata.Dependencies {
