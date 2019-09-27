@@ -2,7 +2,7 @@ module github.com/cloudfoundry/cnb2cf
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/buildpack/libbuildpack v1.24.3
+	github.com/buildpack/libbuildpack v1.24.4
 	github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
 	github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
 	github.com/cloudfoundry/libcfbuildpack v1.87.2
