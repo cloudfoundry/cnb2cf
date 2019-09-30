@@ -2,6 +2,7 @@ package shims
 
 import (
 	"fmt"
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -9,12 +10,13 @@ import (
 	"strconv"
 
 	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/pkg/errors"
 
 	buildpack2 "github.com/buildpack/libbuildpack/buildpack"
 )
+
+const fakeCNBVersion = "0.0.1"
 
 var (
 	V3LifecycleDep   = "lifecycle"
@@ -277,22 +279,22 @@ func (f *Finalizer) RenameEnvDir(dst string) error {
 
 func (f *Finalizer) UpdateGroupTOML(buildpackID string) error {
 	var groupMetadata struct {
-		Buildpacks []cloudnative.BuildpackOrderGroup `toml:"buildpacks"`
+		Group []cloudnative.BuildpackOrderGroup `toml:"group"`
 	}
 
 	if _, err := toml.DecodeFile(f.GroupMetadata, &groupMetadata); err != nil {
 		return err
 	}
 
-	groupMetadata.Buildpacks = append([]cloudnative.BuildpackOrderGroup{
-		{ID: buildpackID},
-	}, groupMetadata.Buildpacks...)
+	groupMetadata.Group = append([]cloudnative.BuildpackOrderGroup{
+		{ID: buildpackID, Version: fakeCNBVersion},
+	}, groupMetadata.Group...)
 
 	return encodeTOML(f.GroupMetadata, groupMetadata)
 }
 
 func (f *Finalizer) AddFakeCNBBuildpack(buildpackID string) error {
-	buildpackPath := filepath.Join(f.V3BuildpacksDir, buildpackID, "latest")
+	buildpackPath := filepath.Join(f.V3BuildpacksDir, buildpackID, fakeCNBVersion)
 	if err := os.MkdirAll(buildpackPath, 0777); err != nil {
 		return err
 	}
@@ -304,14 +306,14 @@ func (f *Finalizer) AddFakeCNBBuildpack(buildpackID string) error {
 	defer buildpackMetadataFile.Close()
 
 	if err = encodeTOML(filepath.Join(buildpackPath, "buildpack.toml"), struct {
-		Buildpack buildpack2.Info `toml:"buildpack"`
+		Buildpack []buildpack2.Info `toml:"buildpack"`
 		Stacks    []stack         `toml:"stacks"`
 	}{
-		Buildpack: buildpack2.Info{
+		Buildpack: []buildpack2.Info{{
 			ID:      buildpackID,
 			Name:    buildpackID,
-			Version: "latest",
-		},
+			Version: fakeCNBVersion,
+		}},
 		Stacks: []stack{{
 			ID: "org.cloudfoundry.stacks." + os.Getenv("CF_STACK"),
 		}},

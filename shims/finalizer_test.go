@@ -212,12 +212,12 @@ version = "4.5.6"
 				Expect(ioutil.WriteFile(filepath.Join(v2DepsDir, "0", file), []byte(file), 0666)).To(Succeed())
 			}
 
-			Expect(ioutil.WriteFile(groupMetadata, []byte(`[[buildpacks]]
+			Expect(ioutil.WriteFile(groupMetadata, []byte(`[[group]]
   id = "buildpack.1"
-  version = ""
-[[buildpacks]]
+  version = "0.0.1"
+[[group]]
   id = "buildpack.2"
-  version = ""`), 0666)).To(Succeed())
+  version = "0.0.1"`), 0666)).To(Succeed())
 			Expect(ioutil.WriteFile(planMetadata, []byte(""), 0666)).To(Succeed())
 		})
 
@@ -237,17 +237,17 @@ version = "4.5.6"
 			// writing the group metadata in the order the buildpacks should be sourced
 			groupMetadataContents, err := ioutil.ReadFile(groupMetadata)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(groupMetadataContents)).To(Equal(`[[buildpacks]]
+			Expect(string(groupMetadataContents)).To(Equal(`[[group]]
   id = "buildpack.0"
-  version = ""
+  version = "0.0.1"
 
-[[buildpacks]]
+[[group]]
   id = "buildpack.1"
-  version = ""
+  version = "0.0.1"
 
-[[buildpacks]]
+[[group]]
   id = "buildpack.2"
-  version = ""
+  version = "0.0.1"
 `))
 		})
 	})
@@ -327,10 +327,10 @@ version = "4.5.6"
 			finalizer.DepsIndex = depsIndex
 			Expect(os.MkdirAll(filepath.Join(v2DepsDir, depsIndex), 0777)).To(Succeed())
 
-			Expect(ioutil.WriteFile(groupMetadata, []byte(`[[buildpacks]]
+			Expect(ioutil.WriteFile(groupMetadata, []byte(`[[group]]
 	 id = "org.cloudfoundry.buildpacks.nodejs"
 	 version = "0.0.2"
-	[[buildpacks]]
+	[[group]]
 	 id = "org.cloudfoundry.buildpacks.npm"
 	 version = "0.0.3"`), 0777)).To(Succeed())
 		})
@@ -339,15 +339,15 @@ version = "4.5.6"
 			Expect(finalizer.UpdateGroupTOML("buildpack.0")).To(Succeed())
 			groupMetadataContents, err := ioutil.ReadFile(groupMetadata)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(groupMetadataContents)).To(Equal(`[[buildpacks]]
+			Expect(string(groupMetadataContents)).To(Equal(`[[group]]
   id = "buildpack.0"
-  version = ""
+  version = "0.0.1"
 
-[[buildpacks]]
+[[group]]
   id = "org.cloudfoundry.buildpacks.nodejs"
   version = "0.0.2"
 
-[[buildpacks]]
+[[group]]
   id = "org.cloudfoundry.buildpacks.npm"
   version = "0.0.3"
 `))
@@ -416,19 +416,19 @@ version = "4.5.6"
 			Expect(os.Setenv("CF_STACK", "cflinuxfs3")).To(Succeed())
 			Expect(finalizer.AddFakeCNBBuildpack("buildpack.0")).To(Succeed())
 
-			buildpackTOMLPath := filepath.Join(v3BuildpacksDir, "buildpack.0", "latest", "buildpack.toml")
+			buildpackTOMLPath := filepath.Join(v3BuildpacksDir, "buildpack.0", "0.0.1", "buildpack.toml")
 			buildpackTOML, err := ioutil.ReadFile(buildpackTOMLPath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(buildpackTOML)).To(Equal(`[buildpack]
+			Expect(string(buildpackTOML)).To(Equal(`[[buildpack]]
   id = "buildpack.0"
   name = "buildpack.0"
-  version = "latest"
+  version = "0.0.1"
 
 [[stacks]]
   id = "org.cloudfoundry.stacks.cflinuxfs3"
 `))
 
-			Expect(filepath.Join(v3BuildpacksDir, "buildpack.0", "latest", "bin", "build")).To(BeAnExistingFile())
+			Expect(filepath.Join(v3BuildpacksDir, "buildpack.0", "0.0.1", "bin", "build")).To(BeAnExistingFile())
 		})
 	})
 
@@ -449,24 +449,4 @@ exec $HOME/.cloudfoundry/%s "$2"
 type bp struct {
 	id       string
 	optional bool
-}
-
-func generateOrderTOMLGroupString(label string, bps []bp) string {
-	orderToml := fmt.Sprintf(`[[groups]]
-	 labels = ["%s"]`, label)
-
-	for _, bp := range bps {
-		orderToml +=
-			fmt.Sprintf(`
-
-  [[groups.buildpacks]]
-    id = "this.is.a.fake.%s"
-    version = "latest"`, bp.id)
-		if bp.optional {
-			orderToml += `
-    optional = true`
-		}
-	}
-
-	return orderToml
 }

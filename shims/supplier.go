@@ -84,7 +84,7 @@ func (s *Supplier) RemoveV2DepsIndex() error {
 }
 
 func (s *Supplier) SaveBuildpackToml() (string, error) {
-	orderFile := filepath.Join(s.OrderDir, fmt.Sprintf("order%s.toml", s.DepsIndex))
+	orderFile := filepath.Join(s.OrderDir, fmt.Sprintf("buildpack%s.toml", s.DepsIndex))
 	if err := libbuildpack.CopyFile(filepath.Join(s.V2BuildpackDir, "buildpack.toml"), orderFile); err != nil {
 		return "", err
 	}

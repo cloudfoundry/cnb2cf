@@ -56,7 +56,7 @@ func detect(logger *libbuildpack.Logger) error {
 		V3LifecycleDir:  tempDir,
 		AppDir:          v2AppDir,
 		V3BuildpacksDir: shims.V3BuildpacksDir,
-		OrderMetadata:   filepath.Join(v2BuildpackDir, "order.toml"),
+		OrderMetadata:   filepath.Join(v2BuildpackDir, "buildpack.toml"),
 		GroupMetadata:   filepath.Join(shims.V3MetadataDir, "group.toml"),
 		PlanMetadata:    filepath.Join(shims.V3MetadataDir, "plan.toml"),
 		Installer:       shims.NewCNBInstaller(manifest),

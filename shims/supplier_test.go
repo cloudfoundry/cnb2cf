@@ -130,7 +130,7 @@ func testSupplier(t *testing.T, when spec.G, it spec.S) {
 
 			orderFile, err := supplier.SaveBuildpackToml()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(orderFile).To(Equal(filepath.Join(orderDir, "order"+depsIndex+".toml")))
+			Expect(orderFile).To(Equal(filepath.Join(orderDir, "buildpack"+depsIndex+".toml")))
 			Expect(orderFile).To(BeAnExistingFile())
 		})
 	})
