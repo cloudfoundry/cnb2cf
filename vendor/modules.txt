@@ -19,7 +19,7 @@ github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
 github.com/cloudfoundry/libbuildpack/ansicleaner
-# github.com/cloudfoundry/libcfbuildpack v1.87.2
+# github.com/cloudfoundry/libcfbuildpack v1.88.1
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
@@ -49,7 +49,7 @@ github.com/hpcloud/tail/watch
 github.com/hpcloud/tail/winfile
 # github.com/jarcoal/httpmock v1.0.4
 github.com/jarcoal/httpmock
-# github.com/mattn/go-colorable v0.1.2
+# github.com/mattn/go-colorable v0.1.4
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.9
 github.com/mattn/go-isatty
@@ -100,7 +100,7 @@ github.com/tidwall/gjson
 github.com/tidwall/match
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
-# golang.org/x/net v0.0.0-20190926025831-c00fd9afed17
+# golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/context/ctxhttp
@@ -141,5 +141,5 @@ google.golang.org/appengine/internal/remote_api
 gopkg.in/fsnotify.v1
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/yaml.v2 v2.2.2
+# gopkg.in/yaml.v2 v2.2.3
 gopkg.in/yaml.v2
