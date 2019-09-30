@@ -419,7 +419,7 @@ version = "4.5.6"
 			buildpackTOMLPath := filepath.Join(v3BuildpacksDir, "buildpack.0", "0.0.1", "buildpack.toml")
 			buildpackTOML, err := ioutil.ReadFile(buildpackTOMLPath)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(buildpackTOML)).To(Equal(`[[buildpack]]
+			Expect(string(buildpackTOML)).To(Equal(`[buildpack]
   id = "buildpack.0"
   name = "buildpack.0"
   version = "0.0.1"

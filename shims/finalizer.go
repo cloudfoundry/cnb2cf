@@ -306,14 +306,14 @@ func (f *Finalizer) AddFakeCNBBuildpack(buildpackID string) error {
 	defer buildpackMetadataFile.Close()
 
 	if err = encodeTOML(filepath.Join(buildpackPath, "buildpack.toml"), struct {
-		Buildpack []buildpack2.Info `toml:"buildpack"`
+		Buildpack buildpack2.Info `toml:"buildpack"`
 		Stacks    []stack         `toml:"stacks"`
 	}{
-		Buildpack: []buildpack2.Info{{
+		Buildpack: buildpack2.Info{
 			ID:      buildpackID,
 			Name:    buildpackID,
 			Version: fakeCNBVersion,
-		}},
+		},
 		Stacks: []stack{{
 			ID: "org.cloudfoundry.stacks." + os.Getenv("CF_STACK"),
 		}},
