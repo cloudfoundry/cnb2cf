@@ -5,7 +5,7 @@ require (
 	github.com/buildpack/libbuildpack v1.24.5
 	github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
 	github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
-	github.com/cloudfoundry/libcfbuildpack v1.88.1
+	github.com/cloudfoundry/libcfbuildpack v1.88.3
 	github.com/golang/mock v1.2.0
 	github.com/google/subcommands v1.0.1
 	github.com/jarcoal/httpmock v1.0.4
