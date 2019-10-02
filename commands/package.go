@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,17 +20,18 @@ import (
 	"github.com/rakyll/statik/fs"
 )
 
-const PackageUsage = `package -stack <stack> [-cached] [-version <version>] [-cachedir <path to cachedir>]:
+const PackageUsage = `package -stack <stack> [-cached] [-version <version>] [-cachedir <path to cachedir>] [-manifestpath <optional path to manifest>]:
   When run in a directory that is structured as a shimmed buildpack, creates a zip file.
 
 `
 
 type Package struct {
-	cached   bool
-	version  string
-	cacheDir string
-	stack    string
-	dev      bool
+	cached            bool
+	version           string
+	cacheDir          string
+	stack             string
+	buildpackTOMLPath string
+	dev               bool
 }
 
 func (*Package) Name() string {
@@ -50,6 +52,7 @@ func (p *Package) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.cacheDir, "cachedir", packager.DefaultCacheDir, "cache dir")
 	f.StringVar(&p.stack, "stack", "", "stack to package buildpack for")
 	f.BoolVar(&p.dev, "dev", false, "use local dependencies")
+	f.StringVar(&p.buildpackTOMLPath, "manifestpath", "buildpack.toml", "custom path to a buildpack.toml file")
 }
 
 func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
@@ -70,6 +73,32 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	dependencyPackager := untested.NewDependencyPackager(tmpDir, p.cached, p.dev, dependencyInstaller)
 	lifecycleHooks := cloudnative.NewLifecycleHooks(filesystem)
 	// END setup
+
+	// Parse current buildpack.toml
+
+	// TODO: please do not do this
+	oldBPTOML := "_old_buildpack.toml"
+	var oldExists bool
+	exists, err := helper.FileExists(p.buildpackTOMLPath)
+	if err != nil {
+		panic(err)
+	} else if !exists {
+		panic(fmt.Errorf("buildpack.toml file at %s does not exist", p.buildpackTOMLPath))
+	} else if exists && p.buildpackTOMLPath != "buildpack.toml" {
+		if oldExists, err = helper.FileExists("buildpack.toml"); err != nil {
+			panic(fmt.Errorf("unable to check for shadowed buildpack.toml file"))
+		} else if oldExists {
+			os.Rename("buildpack.toml", oldBPTOML)
+		}
+		os.Rename(p.buildpackTOMLPath, "buildpack.toml")
+	}
+
+	defer func() {
+		os.Rename("buildpack.toml", p.buildpackTOMLPath)
+		if oldExists {
+			os.Rename(oldBPTOML, "buildpack.toml")
+		}
+	}()
 
 	buildpack, err := cloudnative.ParseBuildpack("buildpack.toml")
 	if err != nil {
