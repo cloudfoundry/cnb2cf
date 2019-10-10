@@ -2,15 +2,17 @@ package shims
 
 import (
 	"fmt"
-	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
+
 	"github.com/BurntSushi/toml"
 	"github.com/cloudfoundry/libbuildpack"
+	"github.com/cloudfoundry/libbuildpack/cutlass/execution"
+	"github.com/cloudfoundry/libbuildpack/cutlass/glow"
 	"github.com/pkg/errors"
 
 	buildpack2 "github.com/buildpack/libbuildpack/buildpack"
@@ -31,7 +33,7 @@ var (
 	V3BuildpacksDir  = filepath.Join(string(filepath.Separator), "home", "vcap", "cnbs")
 )
 
-type detector interface {
+type LifecycleDetectRunner interface {
 	RunLifecycleDetect() error
 }
 
@@ -56,10 +58,12 @@ type Finalizer struct {
 	V3LifecycleDir  string
 	V3LauncherDir   string
 	ProfileDir      string
-	Detector        detector
+	Detector        LifecycleDetectRunner
 	Installer       Installer
 	Manifest        *libbuildpack.Manifest
 	Logger          *libbuildpack.Logger
+	Executable      glow.Executable
+	Environment     Environment
 }
 
 func (f *Finalizer) Finalize() error {
@@ -87,7 +91,7 @@ func (f *Finalizer) Finalize() error {
 		return errors.Wrap(err, "failed to restore v3 cache")
 	}
 
-	if err := f.RunLifeycleBuild(); err != nil {
+	if err := f.RunLifecycleBuild(); err != nil {
 		return errors.Wrap(err, "failed to run v3 lifecycle builder")
 	}
 
@@ -233,20 +237,34 @@ func (f *Finalizer) RestoreV3Cache() error {
 	return nil
 }
 
-func (f *Finalizer) RunLifeycleBuild() error {
-	cmd := exec.Command(
-		filepath.Join(f.V3LifecycleDir, V3Builder),
+func (f *Finalizer) RunLifecycleBuild() error {
+
+	args := []string{
 		"-app", f.V3AppDir,
 		"-buildpacks", f.V3BuildpacksDir,
 		"-group", f.GroupMetadata,
 		"-layers", f.V3LayersDir,
 		"-plan", f.PlanMetadata,
-	)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = append(os.Environ(), "CNB_STACK_ID=org.cloudfoundry.stacks."+os.Getenv("CF_STACK"))
+	}
 
-	return cmd.Run()
+	env := os.Environ()
+
+	stack := f.Environment.Stack()
+	env = append(env, fmt.Sprintf("CNB_STACK_ID=org.cloudfoundry.stacks.%s", stack))
+
+	services := f.Environment.Services()
+	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", services))
+
+	_, _, err := f.Executable.Execute(execution.Options{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Env:    env,
+	}, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (f *Finalizer) MoveV2Layers(src, dst string) error {

@@ -1,10 +1,11 @@
 module github.com/cloudfoundry/cnb2cf
 
 require (
+	code.cloudfoundry.org/lager v2.0.0+incompatible
 	github.com/BurntSushi/toml v0.3.1
 	github.com/buildpack/libbuildpack v1.24.5
 	github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
-	github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
+	github.com/cloudfoundry/libbuildpack v0.0.0-20191010192607-1a4842865097
 	github.com/cloudfoundry/libcfbuildpack v1.89.0
 	github.com/golang/mock v1.3.1
 	github.com/google/subcommands v1.0.1

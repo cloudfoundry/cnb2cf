@@ -4,3 +4,4 @@
 nodejs-cnb_*
 *_buildpack-*
 /template
+.DS_Store

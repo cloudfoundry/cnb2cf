@@ -6,10 +6,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/pkg/errors"
-
+	"code.cloudfoundry.org/lager"
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/shims"
 	"github.com/cloudfoundry/libbuildpack"
+	"github.com/cloudfoundry/libbuildpack/cutlass/execution"
+	"github.com/pkg/errors"
 )
 
 func main() {
@@ -52,6 +54,9 @@ func detect(logger *libbuildpack.Logger) error {
 		return err
 	}
 
+	detectExecPath := filepath.Join(tempDir, shims.V3Detector)
+	executable := execution.NewExecutable(detectExecPath, lager.NewLogger("detect"))
+
 	detector := shims.Detector{
 		V3LifecycleDir:  tempDir,
 		AppDir:          v2AppDir,
@@ -60,6 +65,8 @@ func detect(logger *libbuildpack.Logger) error {
 		GroupMetadata:   filepath.Join(shims.V3MetadataDir, "group.toml"),
 		PlanMetadata:    filepath.Join(shims.V3MetadataDir, "plan.toml"),
 		Installer:       shims.NewCNBInstaller(manifest),
+		Environment:     cloudnative.NewEnvironment(),
+		Executor:        executable,
 	}
 
 	return detector.Detect()

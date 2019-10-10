@@ -15,6 +15,7 @@ func TestUnitCloudNative(t *testing.T) {
 	suite("DependencyInstaller", testDependencyInstaller)
 	suite("LifecycleHooks", testLifecycleHooks)
 	suite("Filesystem", testFilesystem)
+	suite("Environment", testEnvironment)
 
 	suite.Run(t)
 }

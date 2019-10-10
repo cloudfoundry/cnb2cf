@@ -1,15 +1,25 @@
 package shims
 
 import (
+	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
+	"sort"
+
+	"github.com/cloudfoundry/libbuildpack/cutlass/execution"
+	"github.com/cloudfoundry/libbuildpack/cutlass/glow"
 
 	"github.com/pkg/errors"
 )
 
+//go:generate faux --interface Environment --output fakes/environment.go
+type Environment interface {
+	Services() string
+	Stack() string
+}
+
+//go:generate faux --interface Installer --output fakes/installer.go
 type Installer interface {
-	InstallCNBs(orderFile string, installDir string) error
+	InstallCNBs(orderFile, installDir string) error
 	InstallLifecycle(dst string) error
 }
 
@@ -24,7 +34,9 @@ type Detector struct {
 	GroupMetadata string
 	PlanMetadata  string
 
-	Installer Installer
+	Installer   Installer
+	Environment Environment
+	Executor    glow.Executable
 }
 
 func (d Detector) Detect() error {
@@ -40,16 +52,30 @@ func (d Detector) RunLifecycleDetect() error {
 		return errors.Wrap(err, "failed to install v3 lifecycle binaries")
 	}
 
-	cmd := exec.Command(
-		filepath.Join(d.V3LifecycleDir, V3Detector),
+	env := os.Environ()
+
+	vcapServices := d.Environment.Services()
+	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", vcapServices))
+
+	stack := d.Environment.Stack()
+	env = append(env, fmt.Sprintf("CNB_STACK_ID=org.cloudfoundry.stacks.%s", stack))
+
+	sort.Strings(env)
+
+	args := []string{
 		"-app", d.AppDir,
 		"-buildpacks", d.V3BuildpacksDir,
 		"-order", d.OrderMetadata,
 		"-group", d.GroupMetadata,
 		"-plan", d.PlanMetadata,
-	)
+	}
+	_, _, err := d.Executor.Execute(execution.Options{
+		Stderr: os.Stderr,
+		Env:    env,
+	}, args...)
+	if err != nil {
+		return err
+	}
 
-	cmd.Stderr = os.Stderr
-	cmd.Env = append(os.Environ(), "CNB_STACK_ID=org.cloudfoundry.stacks."+os.Getenv("CF_STACK"))
-	return cmd.Run()
+	return nil
 }

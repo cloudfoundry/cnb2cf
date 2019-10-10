@@ -9,6 +9,57 @@ import (
 	reflect "reflect"
 )
 
+// MockEnvironment is a mock of Environment interface
+type MockEnvironment struct {
+	ctrl     *gomock.Controller
+	recorder *MockEnvironmentMockRecorder
+}
+
+// MockEnvironmentMockRecorder is the mock recorder for MockEnvironment
+type MockEnvironmentMockRecorder struct {
+	mock *MockEnvironment
+}
+
+// NewMockEnvironment creates a new mock instance
+func NewMockEnvironment(ctrl *gomock.Controller) *MockEnvironment {
+	mock := &MockEnvironment{ctrl: ctrl}
+	mock.recorder = &MockEnvironmentMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockEnvironment) EXPECT() *MockEnvironmentMockRecorder {
+	return m.recorder
+}
+
+// Services mocks base method
+func (m *MockEnvironment) Services() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Services")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Services indicates an expected call of Services
+func (mr *MockEnvironmentMockRecorder) Services() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Services", reflect.TypeOf((*MockEnvironment)(nil).Services))
+}
+
+// Stack mocks base method
+func (m *MockEnvironment) Stack() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stack")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Stack indicates an expected call of Stack
+func (mr *MockEnvironmentMockRecorder) Stack() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stack", reflect.TypeOf((*MockEnvironment)(nil).Stack))
+}
+
 // MockInstaller is a mock of Installer interface
 type MockInstaller struct {
 	ctrl     *gomock.Controller

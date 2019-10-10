@@ -1,25 +1,29 @@
 package shims_test
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/cloudfoundry/cnb2cf/shims"
-	"github.com/golang/mock/gomock"
+	"github.com/cloudfoundry/cnb2cf/shims/fakes"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
 )
 
-//go:generate mockgen -source=detector.go --destination=mocks_detector_shims_test.go --package=shims_test
+//go:generate faux --interface Executable --package github.com/cloudfoundry/libbuildpack/cutlass/glow --output fakes/executable.go
 
 func testDetector(t *testing.T, when spec.G, it spec.S) {
 	var (
 		Expect func(interface{}, ...interface{}) Assertion
 
 		detector        shims.Detector
+		installer       *fakes.Installer
+		environment     *fakes.Environment
+		fakeExecutable  *fakes.Executable
 		v3BuildpacksDir string
 		v3AppDir        string
 		tempDir         string
@@ -27,17 +31,12 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 		groupMetadata   string
 		orderMetadata   string
 		planMetadata    string
-		mockInstaller   *MockInstaller
-		mockCtrl        *gomock.Controller
 	)
 
 	it.Before(func() {
 		Expect = NewWithT(t).Expect
 
 		var err error
-		mockCtrl = gomock.NewController(t)
-		mockInstaller = NewMockInstaller(mockCtrl)
-
 		tempDir, err = ioutil.TempDir("", "tmp")
 		Expect(err).NotTo(HaveOccurred())
 
@@ -52,6 +51,18 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 
 		v3BuildpacksDir = filepath.Join(tempDir, "buildpacks")
 
+		installer = &fakes.Installer{}
+		installer.InstallLifecycleCall.Stub = func(path string) error {
+			contents := "#!/usr/bin/env bash\nexit 0\n"
+			return ioutil.WriteFile(filepath.Join(path, "detector"), []byte(contents), os.ModePerm)
+		}
+
+		environment = &fakes.Environment{}
+		environment.ServicesCall.Returns.String = `{"some-key": "some-val"}`
+		environment.StackCall.Returns.String = "some-stack"
+
+		fakeExecutable = &fakes.Executable{}
+
 		detector = shims.Detector{
 			AppDir:          v3AppDir,
 			V3BuildpacksDir: v3BuildpacksDir,
@@ -59,7 +70,9 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 			OrderMetadata:   orderMetadata,
 			GroupMetadata:   groupMetadata,
 			PlanMetadata:    planMetadata,
-			Installer:       mockInstaller,
+			Installer:       installer,
+			Environment:     environment,
+			Executor:        fakeExecutable,
 		}
 	})
 
@@ -68,11 +81,37 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it("should run the v3-detector", func() {
-		mockInstaller.EXPECT().InstallCNBs(orderMetadata, v3BuildpacksDir)
-		mockInstaller.EXPECT().InstallLifecycle(v3LifecycleDir).Do(func(path string) error {
-			contents := "#!/usr/bin/env bash\nexit 0\n"
-			return ioutil.WriteFile(filepath.Join(path, "detector"), []byte(contents), os.ModePerm)
+		Expect(detector.Detect()).To(Succeed())
+
+		Expect(installer.InstallCNBsCall.Receives.OrderFile).To(Equal(orderMetadata))
+		Expect(installer.InstallCNBsCall.Receives.InstallDir).To(Equal(v3BuildpacksDir))
+
+		Expect(installer.InstallLifecycleCall.Receives.Dst).To(Equal(v3LifecycleDir))
+
+		Expect(environment.ServicesCall.CallCount).To(Equal(1))
+
+		Expect(fakeExecutable.ExecuteCall.Receives.Args).To(Equal([]string{
+			"-app", v3AppDir,
+			"-buildpacks", v3BuildpacksDir,
+			"-order", orderMetadata,
+			"-group", groupMetadata,
+			"-plan", planMetadata,
+		}))
+		Expect(fakeExecutable.ExecuteCall.Receives.Options.Stderr).To(Equal(os.Stderr))
+
+		env := fakeExecutable.ExecuteCall.Receives.Options.Env
+		Expect(env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
+		Expect(env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+	})
+
+	when("v3-detector errors out", func() {
+		it.Before(func() {
+			fakeExecutable.ExecuteCall.Returns.Err = errors.New("failed to run v3 lifecycle detect")
 		})
-		Expect(detector.Detect()).ToNot(HaveOccurred())
+
+		it("returns error", func() {
+			err := detector.Detect()
+			Expect(err).To(MatchError("failed to run v3 lifecycle detect"))
+		})
 	})
 }

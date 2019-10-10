@@ -6,8 +6,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"code.cloudfoundry.org/lager"
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/shims"
 	"github.com/cloudfoundry/libbuildpack"
+
+	"github.com/cloudfoundry/libbuildpack/cutlass/execution"
 )
 
 func main() {
@@ -60,6 +64,12 @@ func finalize(logger *libbuildpack.Logger) error {
 
 	installer := shims.NewCNBInstaller(manifest)
 
+	detectExecPath := filepath.Join(tempDir, shims.V3Detector)
+	detectExecutable := execution.NewExecutable(detectExecPath, lager.NewLogger("detect"))
+
+	finalizeExecPath := filepath.Join(tempDir, shims.V3Builder)
+	finalizeExecutable := execution.NewExecutable(finalizeExecPath, lager.NewLogger("finalize"))
+
 	finalizer := shims.Finalizer{
 		V2AppDir:        v2AppDir,
 		V3AppDir:        shims.V3AppDir,
@@ -83,10 +93,14 @@ func finalize(logger *libbuildpack.Logger) error {
 			GroupMetadata:   filepath.Join(shims.V3MetadataDir, "group.toml"),
 			PlanMetadata:    filepath.Join(shims.V3MetadataDir, "plan.toml"),
 			Installer:       installer,
+			Environment:     cloudnative.NewEnvironment(),
+			Executor:        detectExecutable,
 		},
-		Installer: installer,
-		Manifest:  manifest,
-		Logger:    logger,
+		Installer:   installer,
+		Manifest:    manifest,
+		Logger:      logger,
+		Executable:  finalizeExecutable,
+		Environment: cloudnative.NewEnvironment(),
 	}
 
 	return finalizer.Finalize()

@@ -1,6 +1,7 @@
 package shims_test
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,7 +9,9 @@ import (
 	"testing"
 
 	"github.com/cloudfoundry/cnb2cf/shims"
+	"github.com/cloudfoundry/cnb2cf/shims/fakes"
 	"github.com/cloudfoundry/libbuildpack"
+
 	"github.com/golang/mock/gomock"
 	"github.com/sclevine/spec"
 
@@ -22,9 +25,11 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 	var (
 		Expect func(interface{}, ...interface{}) Assertion
 
-		finalizer    shims.Finalizer
-		mockCtrl     *gomock.Controller
-		mockDetector *MockDetector
+		finalizer       shims.Finalizer
+		fakeExecutable  *fakes.Executable
+		fakeEnvironment *fakes.Environment
+		mockCtrl        *gomock.Controller
+		mockDetector    *MockLifecycleDetectRunner
 		tempDir,
 		v2AppDir,
 		v3AppDir,
@@ -47,7 +52,7 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 		Expect = NewWithT(t).Expect
 
 		mockCtrl = gomock.NewController(t)
-		mockDetector = NewMockDetector(mockCtrl)
+		mockDetector = NewMockLifecycleDetectRunner(mockCtrl)
 
 		var err error
 		tempDir, err = ioutil.TempDir("", "tmp")
@@ -93,6 +98,9 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 
 		finalizeLogger = &libbuildpack.Logger{}
 
+		fakeExecutable = &fakes.Executable{}
+		fakeEnvironment = &fakes.Environment{}
+
 		finalizer = shims.Finalizer{
 			V2AppDir:        v2AppDir,
 			V3AppDir:        v3AppDir,
@@ -110,6 +118,8 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 			V3LifecycleDir:  binDir,
 			Detector:        mockDetector,
 			Logger:          finalizeLogger,
+			Executable:      fakeExecutable,
+			Environment:     fakeEnvironment,
 		}
 	})
 
@@ -117,6 +127,43 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 		mockCtrl.Finish()
 		Expect(os.Unsetenv("CF_STACK")).To(Succeed())
 		Expect(os.RemoveAll(tempDir)).To(Succeed())
+	})
+
+	when("RunLifecycleBuild", func() {
+		it.Before(func() {
+			fakeEnvironment.StackCall.Returns.String = "some-stack"
+			fakeEnvironment.ServicesCall.Returns.String = `{"some-key": "some-val"}`
+		})
+
+		it("when executing lifecycle binary", func() {
+			Expect(finalizer.RunLifecycleBuild()).To(Succeed())
+
+			Expect(fakeExecutable.ExecuteCall.Receives.Args).To(Equal([]string{
+				"-app", v3AppDir,
+				"-buildpacks", v3BuildpacksDir,
+				"-group", groupMetadata,
+				"-layers", v3LayersDir,
+				"-plan", planMetadata,
+			}))
+
+			Expect(fakeExecutable.ExecuteCall.Receives.Options.Stdout).To(Equal(os.Stdout))
+			Expect(fakeExecutable.ExecuteCall.Receives.Options.Stderr).To(Equal(os.Stderr))
+
+			env := fakeExecutable.ExecuteCall.Receives.Options.Env
+			Expect(env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
+			Expect(env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+		})
+
+		when("the lifecycle build binary fails", func() {
+			it.Before(func() {
+				fakeExecutable.ExecuteCall.Returns.Err = errors.New("lifecycle build phase failed")
+			})
+
+			it("returns an error", func() {
+				err := finalizer.RunLifecycleBuild()
+				Expect(err).To(MatchError("lifecycle build phase failed"))
+			})
+		})
 	})
 
 	when("GenerateOrderTOML", func() {

@@ -1,5 +1,7 @@
 # cloud.google.com/go v0.46.3
 cloud.google.com/go/compute/metadata
+# code.cloudfoundry.org/lager v2.0.0+incompatible
+code.cloudfoundry.org/lager
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
 # github.com/Masterminds/semver v1.5.0
@@ -16,11 +18,14 @@ github.com/buildpack/libbuildpack/stack
 github.com/buildpack/libbuildpack/buildpackplan
 # github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
 github.com/cloudfoundry/dagger
-# github.com/cloudfoundry/libbuildpack v0.0.0-20190724153911-afcbb4418ec3
+# github.com/cloudfoundry/libbuildpack v0.0.0-20191010192607-1a4842865097
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
+github.com/cloudfoundry/libbuildpack/cutlass/execution
+github.com/cloudfoundry/libbuildpack/cutlass/glow
 github.com/cloudfoundry/libbuildpack/cutlass
 github.com/cloudfoundry/libbuildpack/ansicleaner
+github.com/cloudfoundry/libbuildpack/cutlass/docker
 # github.com/cloudfoundry/libcfbuildpack v1.89.0
 github.com/cloudfoundry/libcfbuildpack/helper
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
@@ -29,7 +34,7 @@ github.com/cloudfoundry/libcfbuildpack/layers
 github.com/cloudfoundry/libcfbuildpack/logger
 github.com/cloudfoundry/libcfbuildpack/buildpackplan
 github.com/cloudfoundry/libcfbuildpack/internal
-# github.com/elazarl/goproxy v0.0.0-20181111060418-2ce16c963a8a
+# github.com/elazarl/goproxy v0.0.0-20190911111923-ecfe977594f1
 github.com/elazarl/goproxy
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
@@ -96,10 +101,12 @@ github.com/rakyll/statik/fs
 # github.com/sclevine/spec v1.3.0
 github.com/sclevine/spec
 github.com/sclevine/spec/report
-# github.com/tidwall/gjson v1.1.3
+# github.com/tidwall/gjson v1.3.2
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match
+# github.com/tidwall/pretty v1.0.0
+github.com/tidwall/pretty
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
 # golang.org/x/net v0.0.0-20191003171128-d98b1b443823
