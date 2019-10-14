@@ -11,8 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/cloudfoundry/libbuildpack"
-	"github.com/cloudfoundry/libbuildpack/cutlass/execution"
-	"github.com/cloudfoundry/libbuildpack/cutlass/glow"
+	"github.com/cloudfoundry/packit"
 	"github.com/pkg/errors"
 
 	buildpack2 "github.com/buildpack/libbuildpack/buildpack"
@@ -62,7 +61,7 @@ type Finalizer struct {
 	Installer       Installer
 	Manifest        *libbuildpack.Manifest
 	Logger          *libbuildpack.Logger
-	Executable      glow.Executable
+	Executable      Executable
 	Environment     Environment
 }
 
@@ -238,15 +237,6 @@ func (f *Finalizer) RestoreV3Cache() error {
 }
 
 func (f *Finalizer) RunLifecycleBuild() error {
-
-	args := []string{
-		"-app", f.V3AppDir,
-		"-buildpacks", f.V3BuildpacksDir,
-		"-group", f.GroupMetadata,
-		"-layers", f.V3LayersDir,
-		"-plan", f.PlanMetadata,
-	}
-
 	env := os.Environ()
 
 	stack := f.Environment.Stack()
@@ -255,11 +245,18 @@ func (f *Finalizer) RunLifecycleBuild() error {
 	services := f.Environment.Services()
 	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", services))
 
-	_, _, err := f.Executable.Execute(execution.Options{
+	_, _, err := f.Executable.Execute(packit.Execution{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 		Env:    env,
-	}, args...)
+		Args: []string{
+			"-app", f.V3AppDir,
+			"-buildpacks", f.V3BuildpacksDir,
+			"-group", f.GroupMetadata,
+			"-layers", f.V3LayersDir,
+			"-plan", f.PlanMetadata,
+		},
+	})
 	if err != nil {
 		return err
 	}
@@ -351,6 +348,7 @@ func (f *Finalizer) WriteProfileLaunch() error {
 		`export CNB_STACK_ID="org.cloudfoundry.stacks.%s"
 export CNB_LAYERS_DIR="$DEPS_DIR"
 export CNB_APP_DIR="$HOME"
+export CNB_SERVICES="$VCAP_SERVICES"
 exec $HOME/.cloudfoundry/%s "$2"
 `,
 		os.Getenv("CF_STACK"), V3Launcher)

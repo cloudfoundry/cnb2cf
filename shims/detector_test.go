@@ -14,8 +14,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-//go:generate faux --interface Executable --package github.com/cloudfoundry/libbuildpack/cutlass/glow --output fakes/executable.go
-
 func testDetector(t *testing.T, when spec.G, it spec.S) {
 	var (
 		Expect func(interface{}, ...interface{}) Assertion
@@ -90,18 +88,16 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 
 		Expect(environment.ServicesCall.CallCount).To(Equal(1))
 
-		Expect(fakeExecutable.ExecuteCall.Receives.Args).To(Equal([]string{
+		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 			"-app", v3AppDir,
 			"-buildpacks", v3BuildpacksDir,
 			"-order", orderMetadata,
 			"-group", groupMetadata,
 			"-plan", planMetadata,
 		}))
-		Expect(fakeExecutable.ExecuteCall.Receives.Options.Stderr).To(Equal(os.Stderr))
-
-		env := fakeExecutable.ExecuteCall.Receives.Options.Env
-		Expect(env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
-		Expect(env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))
+		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
+		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
 	})
 
 	when("v3-detector errors out", func() {

@@ -3,11 +3,10 @@ package shims
 import (
 	"fmt"
 	"os"
-	"sort"
+	"strings"
 
-	"github.com/cloudfoundry/libbuildpack/cutlass/execution"
-	"github.com/cloudfoundry/libbuildpack/cutlass/glow"
-
+	"github.com/cloudfoundry/libbuildpack"
+	"github.com/cloudfoundry/packit"
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +22,11 @@ type Installer interface {
 	InstallLifecycle(dst string) error
 }
 
+//go:generate faux --interface Executable --output fakes/executable.go
+type Executable interface {
+	Execute(packit.Execution) (stdout, stderr string, err error)
+}
+
 type Detector struct {
 	V3LifecycleDir string
 
@@ -36,7 +40,7 @@ type Detector struct {
 
 	Installer   Installer
 	Environment Environment
-	Executor    glow.Executable
+	Executor    Executable
 }
 
 func (d Detector) Detect() error {
@@ -51,8 +55,10 @@ func (d Detector) RunLifecycleDetect() error {
 	if err := d.Installer.InstallLifecycle(d.V3LifecycleDir); err != nil {
 		return errors.Wrap(err, "failed to install v3 lifecycle binaries")
 	}
-
+	var logger = libbuildpack.NewLogger(os.Stderr)
+	logger.Info("Environ from detect in cnb2cf")
 	env := os.Environ()
+	logger.Info(strings.Join(env, "\n"))
 
 	vcapServices := d.Environment.Services()
 	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", vcapServices))
@@ -60,19 +66,18 @@ func (d Detector) RunLifecycleDetect() error {
 	stack := d.Environment.Stack()
 	env = append(env, fmt.Sprintf("CNB_STACK_ID=org.cloudfoundry.stacks.%s", stack))
 
-	sort.Strings(env)
-
-	args := []string{
-		"-app", d.AppDir,
-		"-buildpacks", d.V3BuildpacksDir,
-		"-order", d.OrderMetadata,
-		"-group", d.GroupMetadata,
-		"-plan", d.PlanMetadata,
-	}
-	_, _, err := d.Executor.Execute(execution.Options{
+	_, _, err := d.Executor.Execute(packit.Execution{
+		Args: []string{
+			"-app", d.AppDir,
+			"-buildpacks", d.V3BuildpacksDir,
+			"-order", d.OrderMetadata,
+			"-group", d.GroupMetadata,
+			"-plan", d.PlanMetadata,
+		},
 		Stderr: os.Stderr,
+		Stdout: os.Stdout,
 		Env:    env,
-	}, args...)
+	})
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@
 package shims_test
 
 import (
+	packit "github.com/cloudfoundry/packit"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -109,4 +110,43 @@ func (m *MockInstaller) InstallLifecycle(dst string) error {
 func (mr *MockInstallerMockRecorder) InstallLifecycle(dst interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallLifecycle", reflect.TypeOf((*MockInstaller)(nil).InstallLifecycle), dst)
+}
+
+// MockExecutable is a mock of Executable interface
+type MockExecutable struct {
+	ctrl     *gomock.Controller
+	recorder *MockExecutableMockRecorder
+}
+
+// MockExecutableMockRecorder is the mock recorder for MockExecutable
+type MockExecutableMockRecorder struct {
+	mock *MockExecutable
+}
+
+// NewMockExecutable creates a new mock instance
+func NewMockExecutable(ctrl *gomock.Controller) *MockExecutable {
+	mock := &MockExecutable{ctrl: ctrl}
+	mock.recorder = &MockExecutableMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockExecutable) EXPECT() *MockExecutableMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockExecutable) Execute(arg0 packit.Execution) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockExecutableMockRecorder) Execute(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockExecutable)(nil).Execute), arg0)
 }

@@ -1,6 +1,7 @@
 package shims_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -96,7 +97,7 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 
 		Expect(os.Setenv("CF_STACK", "some-stack")).To(Succeed())
 
-		finalizeLogger = &libbuildpack.Logger{}
+		finalizeLogger = libbuildpack.NewLogger(bytes.NewBuffer(nil))
 
 		fakeExecutable = &fakes.Executable{}
 		fakeEnvironment = &fakes.Environment{}
@@ -138,20 +139,17 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 		it("when executing lifecycle binary", func() {
 			Expect(finalizer.RunLifecycleBuild()).To(Succeed())
 
-			Expect(fakeExecutable.ExecuteCall.Receives.Args).To(Equal([]string{
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
 				"-app", v3AppDir,
 				"-buildpacks", v3BuildpacksDir,
 				"-group", groupMetadata,
 				"-layers", v3LayersDir,
 				"-plan", planMetadata,
 			}))
-
-			Expect(fakeExecutable.ExecuteCall.Receives.Options.Stdout).To(Equal(os.Stdout))
-			Expect(fakeExecutable.ExecuteCall.Receives.Options.Stderr).To(Equal(os.Stderr))
-
-			env := fakeExecutable.ExecuteCall.Receives.Options.Env
-			Expect(env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
-			Expect(env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stdout).To(Equal(os.Stdout))
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
 		})
 
 		when("the lifecycle build binary fails", func() {
@@ -487,6 +485,7 @@ version = "4.5.6"
 			Expect(string(contents)).To(Equal(fmt.Sprintf(`export CNB_STACK_ID="org.cloudfoundry.stacks.%s"
 export CNB_LAYERS_DIR="$DEPS_DIR"
 export CNB_APP_DIR="$HOME"
+export CNB_SERVICES="$VCAP_SERVICES"
 exec $HOME/.cloudfoundry/%s "$2"
 `, os.Getenv("CF_STACK"), shims.V3Launcher)))
 		})

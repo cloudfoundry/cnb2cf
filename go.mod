@@ -7,6 +7,7 @@ require (
 	github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
 	github.com/cloudfoundry/libbuildpack v0.0.0-20191010192607-1a4842865097
 	github.com/cloudfoundry/libcfbuildpack v1.89.0
+	github.com/cloudfoundry/packit v0.0.0-20191014140300-f8d2e0b20a04
 	github.com/golang/mock v1.3.1
 	github.com/google/subcommands v1.0.1
 	github.com/jarcoal/httpmock v1.0.4

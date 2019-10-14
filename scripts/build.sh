@@ -5,7 +5,6 @@ readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 function main() {
     pushd "${ROOT_DIR}" > /dev/null || return
-        mkdir -p ./template/bin
         shim::bin::update
 
         cat <<COMPILE > ./template/bin/compile
@@ -35,6 +34,7 @@ COMPILE
 function shim::bin::update() {
     local out_dir
     out_dir="${ROOT_DIR}/template/bin"
+    mkdir -p "${out_dir}"
 
     pushd "${ROOT_DIR}" > /dev/null || return
         for cmd in detect supply finalize release; do
