@@ -26,6 +26,8 @@ github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnweb
 github.com/buildpack/libbuildpack v1.19.0/go.mod h1:oxgSTzPbWscHs27iuYrctEZpSak2m/qPThA+9JM0Boo=
 github.com/buildpack/libbuildpack v1.25.0 h1:9Hs3a9rz4qrjqgcDDTYY5S4zRaQJc5ctoLkV5X0WBDw=
 github.com/buildpack/libbuildpack v1.25.0/go.mod h1:cBmq8aozSDfy+RiKCERQbT6lk0M/Xf3aJWK2PLbPG1g=
+github.com/buildpack/libbuildpack v1.25.1 h1:IV4v1jm/ERRgIpjnQO+ckJFboVJdzSYmLVJHt6WADM0=
+github.com/buildpack/libbuildpack v1.25.1/go.mod h1:cBmq8aozSDfy+RiKCERQbT6lk0M/Xf3aJWK2PLbPG1g=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97 h1:xTTXdk/T3XK3EY2YJ+6kG1yKPUuKr5kKGk0IhztmYIQ=
 github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97/go.mod h1:PXeUHc4d2vAVO/31jFE6uD09w/yFfzs4kcayAVEvnEI=
