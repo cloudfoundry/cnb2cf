@@ -3,6 +3,7 @@ package shims
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/cloudfoundry/libbuildpack"
@@ -58,6 +59,9 @@ func (d Detector) RunLifecycleDetect() error {
 	var logger = libbuildpack.NewLogger(os.Stderr)
 	logger.Info("Environ from detect in cnb2cf")
 	env := os.Environ()
+
+	sort.Strings(env)
+
 	logger.Info(strings.Join(env, "\n"))
 
 	vcapServices := d.Environment.Services()
@@ -75,7 +79,6 @@ func (d Detector) RunLifecycleDetect() error {
 			"-plan", d.PlanMetadata,
 		},
 		Stderr: os.Stderr,
-		Stdout: os.Stdout,
 		Env:    env,
 	})
 	if err != nil {

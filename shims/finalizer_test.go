@@ -486,6 +486,8 @@ version = "4.5.6"
 export CNB_LAYERS_DIR="$DEPS_DIR"
 export CNB_APP_DIR="$HOME"
 export CNB_SERVICES="$VCAP_SERVICES"
+export CNB_INSTANCE_INDEX="$CF_INSTANCE_INDEX"
+export CNB_APP_NAME="$(echo "$VCAP_APPLICATION" | jq -r .application_name)"
 exec $HOME/.cloudfoundry/%s "$2"
 `, os.Getenv("CF_STACK"), shims.V3Launcher)))
 		})
