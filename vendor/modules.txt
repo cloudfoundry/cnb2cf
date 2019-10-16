@@ -21,10 +21,10 @@ github.com/cloudfoundry/dagger
 # github.com/cloudfoundry/libbuildpack v0.0.0-20191015134530-4333d9358141
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
+github.com/cloudfoundry/libbuildpack/cutlass/glow
 github.com/cloudfoundry/libbuildpack/cutlass
 github.com/cloudfoundry/libbuildpack/ansicleaner
 github.com/cloudfoundry/libbuildpack/cutlass/docker
-github.com/cloudfoundry/libbuildpack/cutlass/glow
 # github.com/cloudfoundry/libcfbuildpack v1.89.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack

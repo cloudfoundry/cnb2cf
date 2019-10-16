@@ -74,7 +74,6 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	// END setup
 
 	// Parse current buildpack.toml
-
 	buildpack, err := cloudnative.ParseBuildpack("buildpack.toml")
 	if err != nil {
 		panic(err)
