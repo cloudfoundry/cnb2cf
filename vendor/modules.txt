@@ -8,7 +8,7 @@ github.com/BurntSushi/toml
 github.com/Masterminds/semver
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/buildpack/libbuildpack v1.24.5
+# github.com/buildpack/libbuildpack v1.25.0
 github.com/buildpack/libbuildpack/buildpack
 github.com/buildpack/libbuildpack/layers
 github.com/buildpack/libbuildpack/logger
