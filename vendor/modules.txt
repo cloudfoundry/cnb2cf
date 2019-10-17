@@ -8,7 +8,7 @@ github.com/BurntSushi/toml
 github.com/Masterminds/semver
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/buildpack/libbuildpack v1.25.1
+# github.com/buildpack/libbuildpack v1.25.2
 github.com/buildpack/libbuildpack/buildpack
 github.com/buildpack/libbuildpack/layers
 github.com/buildpack/libbuildpack/logger
@@ -25,7 +25,7 @@ github.com/cloudfoundry/libbuildpack/cutlass
 github.com/cloudfoundry/libbuildpack/ansicleaner
 github.com/cloudfoundry/libbuildpack/cutlass/docker
 github.com/cloudfoundry/libbuildpack/cutlass/glow
-# github.com/cloudfoundry/libcfbuildpack v1.89.1
+# github.com/cloudfoundry/libcfbuildpack v1.89.3
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper
