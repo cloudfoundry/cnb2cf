@@ -25,7 +25,7 @@ github.com/cloudfoundry/libbuildpack/cutlass
 github.com/cloudfoundry/libbuildpack/ansicleaner
 github.com/cloudfoundry/libbuildpack/cutlass/docker
 github.com/cloudfoundry/libbuildpack/cutlass/glow
-# github.com/cloudfoundry/libcfbuildpack v1.89.5
+# github.com/cloudfoundry/libcfbuildpack v1.90.0
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/helper

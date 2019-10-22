@@ -6,7 +6,7 @@ require (
 	github.com/buildpack/libbuildpack v1.25.2
 	github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
 	github.com/cloudfoundry/libbuildpack v0.0.0-20191015134530-4333d9358141
-	github.com/cloudfoundry/libcfbuildpack v1.89.5
+	github.com/cloudfoundry/libcfbuildpack v1.90.0
 	github.com/cloudfoundry/packit v0.0.0-20191015134313-760041110f18
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
