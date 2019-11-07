@@ -18,7 +18,7 @@ github.com/buildpack/libbuildpack/application
 github.com/buildpack/libbuildpack/buildpackplan
 # github.com/cloudfoundry/dagger v0.0.0-20190821204652-0269a001ee97
 github.com/cloudfoundry/dagger
-# github.com/cloudfoundry/libbuildpack v0.0.0-20191015134530-4333d9358141
+# github.com/cloudfoundry/libbuildpack v0.0.0-20191107210012-50982838f2a1
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/packager
 github.com/cloudfoundry/libbuildpack/cutlass
@@ -102,7 +102,7 @@ github.com/rakyll/statik/fs
 # github.com/sclevine/spec v1.3.0
 github.com/sclevine/spec
 github.com/sclevine/spec/report
-# github.com/tidwall/gjson v1.3.2
+# github.com/tidwall/gjson v1.3.4
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match
@@ -110,7 +110,7 @@ github.com/tidwall/match
 github.com/tidwall/pretty
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
-# golang.org/x/net v0.0.0-20191101175033-0deb6923b6d9
+# golang.org/x/net v0.0.0-20191105084925-a882066a44e0
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/context/ctxhttp
@@ -122,7 +122,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20191104094858-e8c54fb511f6
+# golang.org/x/sys v0.0.0-20191105231009-c1f44814a5cd
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/encoding
