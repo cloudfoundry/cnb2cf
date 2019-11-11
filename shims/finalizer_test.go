@@ -166,9 +166,10 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 
 	when("GenerateOrderTOML", func() {
 		it("should write a order.toml file with metabuildpack id's and versions", func() {
-			orderFile := filepath.Join(orderDir, "orderA.toml")
+			orderFileA := filepath.Join(orderDir, "orderA.toml")
+			orderFileB := filepath.Join(orderDir, "orderB.toml")
 
-			Expect(ioutil.WriteFile(orderFile, []byte(`
+			Expect(ioutil.WriteFile(orderFileA, []byte(`
 api = "0.2"
 [buildpack]
 id = "org.some-org.first-buildpack.shimmed"
@@ -181,18 +182,35 @@ id = "org.some-org.first-buildpack"
 version = "1.2.3"
 `), os.ModePerm)).To(Succeed())
 
+			Expect(ioutil.WriteFile(orderFileB, []byte(`
+api = "0.2"
+[buildpack]
+id = "org.some-org.second-buildpack.shimmed"
+name = "Second Buildpack"
+version = "4.5.6"
+
+[[order]]
+[[order.group]]
+id = "org.some-org.second-buildpack"
+version = "4.5.6"
+`), os.ModePerm)).To(Succeed())
+
 			Expect(finalizer.GenerateOrderTOML()).To(Succeed())
 
 			Expect(finalizer.OrderMetadata).To(BeAnExistingFile())
 			buildpack, err := shims.ParseBuildpackTOML(finalizer.OrderMetadata)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(buildpack.Order).To(HaveLen(1))
+			Expect(buildpack.Order).To(HaveLen(2))
 			Expect(buildpack.Order[0].Groups).To(HaveLen(1))
-			group := buildpack.Order[0].Groups[0]
+			group1 := buildpack.Order[0].Groups[0]
 
-			Expect(group.ID).To(Equal("org.some-org.first-buildpack"))
-			Expect(group.Version).To(Equal("1.2.3"))
+			Expect(group1.ID).To(Equal("org.some-org.first-buildpack"))
+			Expect(group1.Version).To(Equal("1.2.3"))
+
+			group2 := buildpack.Order[1].Groups[0]
+			Expect(group2.ID).To(Equal("org.some-org.second-buildpack"))
+			Expect(group2.Version).To(Equal("4.5.6"))
 		})
 	})
 

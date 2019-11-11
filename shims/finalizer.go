@@ -129,7 +129,7 @@ func (f *Finalizer) GenerateOrderTOML() error {
 		if err := toml.Unmarshal(tomlContent, &currentBpToml); err != nil {
 			return err
 		}
-		result = currentBpToml.Order
+		result = append(result, currentBpToml.Order...)
 	}
 
 	orderFile, err := os.OpenFile(f.OrderMetadata, os.O_CREATE|os.O_RDWR, 0644)

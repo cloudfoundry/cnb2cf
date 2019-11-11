@@ -112,10 +112,6 @@ func (c *CNBInstaller) DownloadCNBs(buildpack BuildpackTOML, installDir string) 
 	return result, nil
 }
 
-func (c *CNBInstaller) SymlinkToLatest(paths []string, installDir string) error {
-	return nil
-}
-
 func (c *CNBInstaller) FindCNB(extractDir string) (string, error) {
 	buildpackTOML := filepath.Join(extractDir, "buildpack.toml")
 	if _, err := os.Stat(buildpackTOML); err == nil {
