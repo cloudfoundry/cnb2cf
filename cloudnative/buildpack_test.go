@@ -134,4 +134,32 @@ version = "some-dependency-version"
 			})
 		})
 	})
+
+	when("BuildpackMetadataDependency", func() {
+		when("MatchesStack", func() {
+			var dependency cloudnative.BuildpackMetadataDependency
+			it.Before(func() {
+				dependency = cloudnative.BuildpackMetadataDependency{
+					Stacks: []string{
+						"org.cloudfoundry.stacks.bionic",
+						"org.cloudfoundry.stacks.tiny",
+						"org.cloudfoundry.stacks.cflinuxfs3",
+						"org.cloudfoundry.stacks.cflinuxfs2",
+					},
+				}
+			})
+
+			when("the dependency includes the given stack", func() {
+				it("returns true", func() {
+					Expect(dependency.MatchesStack("cflinuxfs3")).To(BeTrue())
+				})
+			})
+
+			when("the dependency does not include the given stack", func() {
+				it("returns true", func() {
+					Expect(dependency.MatchesStack("no-such-stack")).To(BeFalse())
+				})
+			})
+		})
+	})
 }

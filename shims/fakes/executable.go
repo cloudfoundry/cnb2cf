@@ -3,7 +3,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry/packit"
+	packit "github.com/cloudfoundry/packit"
 )
 
 type Executable struct {

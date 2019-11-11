@@ -5,10 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 	"time"
 
 	"github.com/cloudfoundry/cnb2cf/shims"
+	"github.com/cloudfoundry/cnb2cf/shims/fakes"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libbuildpack/ansicleaner"
 	"github.com/jarcoal/httpmock"
@@ -21,10 +23,12 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 	var (
 		Expect func(interface{}, ...interface{}) Assertion
 
-		installer *shims.CNBInstaller
-		tmpDir    string
-		buffer    *bytes.Buffer
-		err       error
+		installer     *shims.CNBInstaller
+		tmpDir        string
+		buffer        *bytes.Buffer
+		err           error
+		fakeInstaller *fakes.DepInstaller
+		manifest      *libbuildpack.Manifest
 	)
 
 	it.Before(func() {
@@ -36,12 +40,15 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 		Expect(err).ToNot(HaveOccurred())
 
 		buffer = new(bytes.Buffer)
+
 		logger := libbuildpack.NewLogger(ansicleaner.New(buffer))
 
-		manifest, err := libbuildpack.NewManifest(filepath.Join("testdata", "buildpack"), logger, time.Now())
-		Expect(err).To(BeNil())
+		var err error
+		manifest, err = libbuildpack.NewManifest(filepath.Join("testdata", "buildpack"), logger, time.Now())
 
-		installer = shims.NewCNBInstaller(manifest)
+		Expect(err).To(BeNil())
+		fakeInstaller = &fakes.DepInstaller{}
+		installer = shims.NewCNBInstaller(manifest, fakeInstaller)
 	})
 
 	it.After(func() {
@@ -49,9 +56,64 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 		os.RemoveAll(tmpDir)
 	})
 
+	when("DownloadCNBs", func() {
+		var buildpackTOML shims.BuildpackTOML
+
+		it.Before(func() {
+			buildpackTOML, err = shims.ParseBuildpackTOML(filepath.Join("testdata", "buildpack", "buildpack.toml"))
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		when("installing the top level buildpacks", func() {
+			var installedDeps []string
+			it.Before(func() {
+				installedDeps = []string{}
+				fakeInstaller.InstallOnlyVersionCall.Stub = func(depName, path string) error {
+					installedDeps = append(installedDeps, depName)
+					return nil
+				}
+			})
+			it("should install all the buildpacks", func() {
+				paths, err := installer.DownloadCNBs(buildpackTOML, tmpDir)
+				Expect(err).NotTo(HaveOccurred())
+
+				// ordering can change due to map function
+				Expect(installedDeps).To(ConsistOf("this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.is.a.fake.bpC"))
+				Expect(len(installedDeps)).To(Equal(3))
+
+				correctNames := []string{"this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.is.a.fake.bpC"}
+				Expect(len(paths)).To(Equal(len(correctNames)))
+
+				// Sort array that was once map keys, as it is unordered
+				sort.Strings(paths)
+				for idx, path := range paths {
+					Expect(path).To(ContainSubstring(filepath.Join(tmpDir, correctNames[idx])))
+				}
+			})
+
+			it("should not install already present buildpacks", func() {
+				Expect(os.MkdirAll(filepath.Join(tmpDir, "this.is.a.fake.bpC", "1.0.2"), 0777)).To(Succeed())
+				paths, err := installer.DownloadCNBs(buildpackTOML, tmpDir)
+				Expect(err).NotTo(HaveOccurred())
+
+				// ordering can change due to map function
+				Expect(installedDeps).To(ConsistOf("this.is.a.fake.bpA", "this.is.a.fake.bpB"))
+				Expect(len(installedDeps)).To(Equal(2))
+
+				correctNames := []string{"this.is.a.fake.bpA", "this.is.a.fake.bpB"}
+				Expect(len(paths)).To(Equal(len(correctNames)))
+
+				// Sort array that was once map keys, as it is unordered
+				sort.Strings(paths)
+				for idx, path := range paths {
+					Expect(path).To(ContainSubstring(filepath.Join(tmpDir, correctNames[idx])))
+				}
+			})
+		})
+	})
+
 	when("InstallCNBs", func() {
 		it.Before(func() {
-			Expect(os.MkdirAll(filepath.Join(tmpDir, "this.is.a.fake.bpC", "1.0.2"), 0777)).To(Succeed())
 			contents, err := ioutil.ReadFile(filepath.Join("testdata", "buildpack", "bpA.tgz"))
 			Expect(err).ToNot(HaveOccurred())
 
@@ -66,9 +128,19 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 			Expect(err).ToNot(HaveOccurred())
 
 			httpmock.RegisterResponder("GET", "https://a-fake-url.com/bp.tgz", httpmock.NewStringResponder(200, string(contents)))
+
+		})
+
+		it.Before(func() {
+			// reset tests to use an actuall installer :(
+			realInstaller := libbuildpack.NewInstaller(manifest)
+			Expect(err).To(BeNil())
+			installer = shims.NewCNBInstaller(manifest, realInstaller)
 		})
 
 		it("installs the latest/unique buildpacks from an order.toml that are not already installed", func() {
+
+			Expect(os.MkdirAll(filepath.Join(tmpDir, "this.is.a.fake.bpC", "1.0.2"), 0777)).To(Succeed())
 			Expect(installer.InstallCNBs(filepath.Join("testdata", "buildpack", "buildpack.toml"), tmpDir)).To(Succeed())
 
 			Expect(filepath.Join(tmpDir, "this.is.a.fake.bpA", "1.0.1", "a.txt")).To(BeAnExistingFile())
@@ -78,7 +150,9 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(buffer.String()).ToNot(ContainSubstring("Installing this.is.a.fake.bpC"))
 			Expect(filepath.Join(tmpDir, "this.is.a.fake.bpC")).To(BeADirectory())
+
 		})
+
 	})
 
 	when("InstallLifecycle", func() {

@@ -59,7 +59,7 @@ func supply(logger *libbuildpack.Logger) error {
 		V2BuildpackDir:  buildpackDir,
 		V3BuildpacksDir: shims.V3BuildpacksDir,
 		OrderDir:        shims.V3StoredOrderDir,
-		Installer:       shims.NewCNBInstaller(manifest),
+		Installer:       shims.NewCNBInstaller(manifest, libbuildpack.NewInstaller(manifest)),
 		Manifest:        manifest,
 		Logger:          logger,
 	}

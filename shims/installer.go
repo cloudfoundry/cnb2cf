@@ -9,20 +9,32 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cloudfoundry/libbuildpack"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
 )
 
 type stack struct {
 	ID string `toml:"id"`
 }
 
-type CNBInstaller struct {
-	*libbuildpack.Installer
-	manifest *libbuildpack.Manifest
+//go:generate faux --interface DepInstaller --output fakes/depinstaller.go
+type DepInstaller interface {
+	InstallDependency(dep libbuildpack.Dependency, outputDir string) error
+	InstallOnlyVersion(depName string, installDir string) error
 }
 
-func NewCNBInstaller(manifest *libbuildpack.Manifest) *CNBInstaller {
-	return &CNBInstaller{libbuildpack.NewInstaller(manifest), manifest}
+type CNBInstaller struct {
+	depInstaller DepInstaller
+	manifest     *libbuildpack.Manifest
 }
+
+func NewCNBInstaller(manifest *libbuildpack.Manifest, depInstaller DepInstaller) *CNBInstaller {
+	return &CNBInstaller{depInstaller: depInstaller, manifest: manifest}
+}
+
+// Really feels like there are two things that are happening here
+// 1) we are downloading a bunch of shit to specific locations
+//
+// 2) we symlink it all to latest
 
 func (c *CNBInstaller) InstallCNBs(orderFile string, installDir string) error {
 	buildpack, err := ParseBuildpackTOML(orderFile)
@@ -30,9 +42,27 @@ func (c *CNBInstaller) InstallCNBs(orderFile string, installDir string) error {
 		return err
 	}
 
-	bpSet := map[string]interface{}{
-		buildpack.Info.ID: nil,
+	paths, err := c.DownloadCNBs(buildpack, installDir)
+	if err != nil {
+		return err
 	}
+	for _, path := range paths {
+		dir := filepath.Dir(path)
+		err = os.Symlink(path, filepath.Join(dir, "latest"))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// install all cnbs and return strings to their paths
+func (c *CNBInstaller) DownloadCNBs(buildpack BuildpackTOML, installDir string) ([]string, error) {
+	var result []string
+
+	bpSet := map[string]interface{}{}
+
 	for _, order := range buildpack.Order {
 		for _, bp := range order.Groups {
 			bpSet[bp.ID] = nil
@@ -42,32 +72,47 @@ func (c *CNBInstaller) InstallCNBs(orderFile string, installDir string) error {
 	for buildpack := range bpSet {
 		versions := c.manifest.AllDependencyVersions(buildpack)
 		if len(versions) != 1 {
-			return fmt.Errorf("unable to find a unique version of %s in the manifest", buildpack)
+			return []string{}, fmt.Errorf("unable to find a unique version of %s in the manifest", buildpack)
 		}
 
 		buildpackDest := filepath.Join(installDir, buildpack, versions[0])
 		if exists, err := libbuildpack.FileExists(buildpackDest); err != nil {
-			return err
+			return []string{}, err
 		} else if exists {
 			continue
 		}
 
-		err := c.InstallOnlyVersion(buildpack, buildpackDest)
+		err := c.depInstaller.InstallOnlyVersion(buildpack, buildpackDest)
 		if err != nil {
-			return err
+			return []string{}, err
 		}
 
-		err = c.InstallCNBs(filepath.Join(buildpackDest, "buildpack.toml"), installDir)
+		result = append(result, buildpackDest)
+
+		// TODO: this code below should be deprecated once we no longer need to recursivly shim
+		nextBPTOML := filepath.Join(buildpackDest, "buildpack.toml")
+		exists, err := helper.FileExists(nextBPTOML)
 		if err != nil {
-			panic(err)
+			return []string{}, err
 		}
 
-		err = os.Symlink(buildpackDest, filepath.Join(installDir, buildpack, "latest"))
-		if err != nil {
-			return err
+		if exists {
+			nextBuildpack, err := ParseBuildpackTOML(nextBPTOML)
+			if err != nil {
+				return []string{}, err
+			}
+			nextPaths, err := c.DownloadCNBs(nextBuildpack, installDir)
+			if err != nil {
+				return []string{}, fmt.Errorf("error installing sub-cnb: %s", err.Error())
+			}
+			result = append(result, nextPaths...)
 		}
 	}
 
+	return result, nil
+}
+
+func (c *CNBInstaller) SymlinkToLatest(paths []string, installDir string) error {
 	return nil
 }
 
@@ -102,7 +147,7 @@ func (c *CNBInstaller) InstallLifecycle(dst string) error {
 
 	defer os.RemoveAll(tempDir)
 
-	if err := c.InstallOnlyVersion(V3LifecycleDep, tempDir); err != nil {
+	if err := c.depInstaller.InstallOnlyVersion(V3LifecycleDep, tempDir); err != nil {
 		return err
 	}
 

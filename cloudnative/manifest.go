@@ -23,6 +23,16 @@ type ManifestDependency struct {
 	SourceSHA256 string   `yaml:"source_sha256"`
 }
 
+func UpdateStacks(stacks []string) []string {
+	var newStacks []string
+	for _, stack := range stacks {
+		updatedStack := strings.Split(stack, ".")
+		newStacks = append(newStacks, updatedStack[len(updatedStack)-1])
+	}
+	return newStacks
+}
+
+// Add stacks transformation here
 func NewManifest(id string, dependencies []BuildpackMetadataDependency) Manifest {
 	var manifestDependencies []ManifestDependency
 	for _, dependency := range dependencies {
@@ -34,7 +44,7 @@ func NewManifest(id string, dependencies []BuildpackMetadataDependency) Manifest
 			SHA256:       dependency.SHA256,
 			Source:       dependency.Source,
 			SourceSHA256: dependency.SourceSHA256,
-			Stacks:       dependency.Stacks,
+			Stacks:       UpdateStacks(dependency.Stacks),
 		})
 	}
 

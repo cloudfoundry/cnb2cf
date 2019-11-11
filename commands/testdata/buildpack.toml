@@ -1,0 +1,52 @@
+api = "0.2"
+
+[buildpack]
+id = "org.shim.nodejs"
+name = "CF Node.js Buildpack"
+version = "{{.Version}}"
+
+[metadata]
+include_files = ["buildpack.toml"]
+
+[[metadata.dependencies]]
+id = "lifecycle"
+version = "0.4.0"
+uri = "https://buildpacks.cloudfoundry.org/dependencies/lifecycle/lifecycle-0.4.0-any-stack-fa6792ea.tgz"
+sha256 = "fa6792ea8c9e7fcad25d76f0bbdf6e494ffdab5e0eaaec4ba1d5fff40a9c600f"
+source = "https://github.com/buildpack/lifecycle/releases/download/v0.4.0/lifecycle-v0.4.0%2Blinux.x86-64.tgz"
+source_sha256 = "fa6792ea8c9e7fcad25d76f0bbdf6e494ffdab5e0eaaec4ba1d5fff40a9c600f"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","org.cloudfoundry.stacks.cflinuxfs2"]
+
+[[metadata.dependencies]]
+id = "org.cloudfoundry.nodejs-compat"
+sha256 = "4adebcfdc495111b2e0702d7b5df373cf29d3bb0676ea24a1dfe7b50cff2c985"
+source = "https://github.com/cloudfoundry/nodejs-compat-cnb/archive/v0.0.25.tar.gz"
+source_sha256 = "b3ffc5a977cba3434da094e8273b9a1a6b4ee27ed7777e9abcbbe681cb7c0d3f"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","io.buildpacks.stacks.bionic"]
+uri = "https://github.com/cloudfoundry/nodejs-compat-cnb/releases/download/v0.0.25/nodejs-compat-cnb-0.0.25.tgz"
+version = "0.0.25"
+
+[[metadata.dependencies]]
+id = "org.cloudfoundry.nodejs"
+sha256 = "a5d53002f97f380b40dace0112c21f4b2b60ba382a0fb499ca7c74c2d8fc44e9"
+source = "https://github.com/cloudfoundry/nodejs-cnb/archive/v0.0.2-RC3.tar.gz"
+source_sha256 = "5e98b8d7350225f5c6d88fdfc600ceafc8ee10c54442ee9a87afcdf90666b683"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3","io.buildpacks.stacks.bionic"]
+uri = "https://github.com/cloudfoundry/nodejs-cnb/releases/download/v0.0.2/nodejs-cnb-compat-cflinuxfs3-v0.0.2.zip"
+version = "1.0.0"
+
+[[order]]
+
+[[order.group]]
+id = "org.cloudfoundry.nodejs-compat"
+version = "0.0.25"
+
+[[order.group]]
+id = "org.cloudfoundry.nodejs"
+version = "1.0.0"
+
+[[order]]
+
+[[order.group]]
+id = "org.cloudfoundry.nodejs"
+version = "1.0.0"

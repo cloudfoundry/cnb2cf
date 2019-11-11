@@ -61,7 +61,7 @@ func finalize(logger *libbuildpack.Logger) error {
 		return err
 	}
 
-	installer := shims.NewCNBInstaller(manifest)
+	installer := shims.NewCNBInstaller(manifest, libbuildpack.NewInstaller(manifest))
 
 	detectExecPath := filepath.Join(tempDir, shims.V3Detector)
 	detectExecutable := packit.NewExecutable(detectExecPath, lager.NewLogger("detect"))

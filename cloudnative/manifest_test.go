@@ -32,6 +32,17 @@ func testManifest(t *testing.T, when spec.G, it spec.S) {
 		Expect(os.RemoveAll(tmpDir)).To(Succeed())
 	})
 
+	when("UpdatingStacks", func() {
+		it("should transform a v3 stackname to a v2 stackname", func() {
+			v3Stacks := []string{"org.cloudfoundry.stacks.cflinuxfs3", "otherorg.stacks.bionic"}
+
+			transformedStacks := cloudnative.UpdateStacks(v3Stacks)
+			Expect(transformedStacks).To(Equal(
+				[]string{"cflinuxfs3", "bionic"},
+			))
+		})
+	})
+
 	when("NewManifest", func() {
 		it("returns a new manifest with the given buildpack details and dependencies", func() {
 			manifest := cloudnative.NewManifest("org.cloudfoundry.some-language", []cloudnative.BuildpackMetadataDependency{
@@ -42,7 +53,7 @@ func testManifest(t *testing.T, when spec.G, it spec.S) {
 					SHA256:       "some-dependency-sha256",
 					Source:       "some-dependency-source",
 					SourceSHA256: "some-dependency-source-sha256",
-					Stacks:       []string{"some-stack"},
+					Stacks:       []string{"org.cloudfoundry.stacks.cflinuxfs3", "otherorg.stacks.bionic"},
 				},
 			})
 			Expect(manifest).To(Equal(cloudnative.Manifest{
@@ -62,7 +73,7 @@ func testManifest(t *testing.T, when spec.G, it spec.S) {
 						Name:         "some-dependency",
 						ID:           "some-dependency",
 						SHA256:       "some-dependency-sha256",
-						Stacks:       []string{"some-stack"},
+						Stacks:       []string{"cflinuxfs3", "bionic"},
 						URI:          "some-dependency-uri",
 						Version:      "some-dependency-version",
 						Source:       "some-dependency-source",
@@ -85,7 +96,7 @@ func testManifest(t *testing.T, when spec.G, it spec.S) {
 						Name:         "some-dependency",
 						ID:           "some-dependency",
 						SHA256:       "some-dependency-sha256",
-						Stacks:       []string{"some-stack"},
+						Stacks:       []string{"cflinuxfs3", "bionic"},
 						URI:          "some-dependency-uri",
 						Version:      "some-dependency-version",
 						Source:       "some-dependency-source",
@@ -111,7 +122,8 @@ dependencies:
   source_sha256: some-dependency-source-sha256
   version: some-dependency-version
   cf_stacks:
-  - some-stack
+  - cflinuxfs3
+  - bionic
 `))
 		})
 

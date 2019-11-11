@@ -60,7 +60,7 @@ func testSupplier(t *testing.T, when spec.G, it spec.S) {
 
 		manifest, err = libbuildpack.NewManifest(filepath.Join("testdata", "buildpack"), logger, time.Now())
 		Expect(err).ToNot(HaveOccurred())
-		installer = shims.NewCNBInstaller(manifest)
+		installer = shims.NewCNBInstaller(manifest, libbuildpack.NewInstaller(manifest))
 
 		orderDir = filepath.Join(tempDir, "order")
 		Expect(os.MkdirAll(orderDir, 0777)).To(Succeed())

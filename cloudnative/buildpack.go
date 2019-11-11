@@ -2,6 +2,7 @@ package cloudnative
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -33,6 +34,16 @@ type BuildpackOrderGroup struct {
 	Version string `toml:"version"`
 }
 
+func ParseBuildpack(path string) (Buildpack, error) {
+	var buildpack Buildpack
+	_, err := toml.DecodeFile(path, &buildpack)
+	if err != nil {
+		return Buildpack{}, fmt.Errorf("failed to parse %s: %s", path, err)
+	}
+
+	return buildpack, nil
+}
+
 type BuildpackMetadataDependency struct {
 	ID      string `toml:"id"`
 	Version string `toml:"version"`
@@ -46,12 +57,11 @@ type BuildpackMetadataDependency struct {
 	Stacks []string `toml:"stacks"`
 }
 
-func ParseBuildpack(path string) (Buildpack, error) {
-	var buildpack Buildpack
-	_, err := toml.DecodeFile(path, &buildpack)
-	if err != nil {
-		return Buildpack{}, fmt.Errorf("failed to parse %s: %s", path, err)
+func (bpDep BuildpackMetadataDependency) MatchesStack(stackName string) bool {
+	for _, stack := range bpDep.Stacks {
+		if strings.HasSuffix(stack, stackName) {
+			return true
+		}
 	}
-
-	return buildpack, nil
+	return false
 }

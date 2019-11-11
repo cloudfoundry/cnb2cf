@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/cloudnative/untested"
 	"github.com/cloudfoundry/cnb2cf/packager"
@@ -20,9 +21,22 @@ import (
 )
 
 const PackageUsage = `package -stack <stack> [-cached] [-version <version>] [-cachedir <path to cachedir>] [-manifestpath <optional path to manifest>]:
-  When run in a directory that is structured as a shimmed buildpack, creates a zip file.
+  when run in a directory that is structured as a shimmed buildpack, creates a zip file.
 
 `
+
+func Fetch(bp cloudnative.Buildpack, installer untested.Installer) error {
+	// TODO: fixme
+	// package child dependencies of the top-level CNB
+	for _, dependency := range bp.Metadata.Dependencies {
+		downloadPath := filepath.Join(os.TempDir(), "downloads")
+		err := installer.Download(dependency.URI, dependency.SHA256, downloadPath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 type Package struct {
 	cached            bool
@@ -31,6 +45,7 @@ type Package struct {
 	stack             string
 	buildpackTOMLPath string
 	dev               bool
+	release           bool
 }
 
 func (*Package) Name() string {
@@ -51,6 +66,7 @@ func (p *Package) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.cacheDir, "cachedir", packager.DefaultCacheDir, "cache dir")
 	f.StringVar(&p.stack, "stack", "", "stack to package buildpack for")
 	f.BoolVar(&p.dev, "dev", false, "use local dependencies")
+	f.BoolVar(&p.release, "release", false, "use released dependencies instead of re-packaging from source")
 	f.StringVar(&p.buildpackTOMLPath, "manifestpath", "buildpack.toml", "custom path to a buildpack.toml file")
 }
 
@@ -74,11 +90,22 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	// END setup
 
 	// Parse current buildpack.toml
-
 	buildpack, err := cloudnative.ParseBuildpack("buildpack.toml")
 	if err != nil {
 		panic(err)
 	}
+
+	if p.version == "" {
+		fmt.Printf("--version is a required flag")
+		os.Exit(1)
+	}
+
+	if p.stack == "" {
+		fmt.Printf("--stack is a required flag")
+		os.Exit(1)
+	}
+
+	buildpack.Info.Version = p.version
 
 	// create "build" directory inside temp dir
 	buildDir := filepath.Join(tmpDir, buildpack.Info.ID, "build")
@@ -87,55 +114,55 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		panic(err)
 	}
 
-	path, err := filepath.Abs(".")
-	if err != nil {
-		panic(err)
-	}
-
-	// build the top-level language family CNB
-	tarballPath, sha256, err := packager.BuildCNB(path, filepath.Join(buildDir, buildpack.Info.ID), p.cached, buildpack.Info.Version)
-	if err != nil {
-		panic(err)
-	}
-
-	var dependencies []cloudnative.BuildpackMetadataDependency
-
-	dependencies = append(dependencies, cloudnative.BuildpackMetadataDependency{
-		ID:      buildpack.Info.ID,
-		Version: buildpack.Info.Version,
-		URI:     fmt.Sprintf("file://%s", tarballPath),
-		SHA256:  sha256,
-		Stacks:  []string{p.stack},
-	})
-
 	// package child dependencies of the top-level CNB
-	for _, dependency := range buildpack.Metadata.Dependencies {
-		deps, err := dependencyPackager.Package(dependency)
+	var dependencies []cloudnative.BuildpackMetadataDependency
+	if p.release {
+		// TODO: fix the if branch
+		err := Fetch(buildpack, dependencyInstaller)
 		if err != nil {
-			log.Printf("failed to handle dependency: %s\n", err)
-			return subcommands.ExitFailure
+			panic(err)
 		}
+		dependencies = buildpack.Metadata.Dependencies
+	} else {
 
-		for _, dep := range deps {
-			dependencies = append(dependencies, cloudnative.BuildpackMetadataDependency{
-				ID:           dep.ID,
-				Version:      dep.Version,
-				URI:          dep.URI,
-				SHA256:       dep.SHA256,
-				Source:       dep.Source,
-				SourceSHA256: dep.SourceSHA256,
-				Stacks:       dep.Stacks,
-			})
+		for _, dependency := range buildpack.Metadata.Dependencies {
+			var deps []cloudnative.BuildpackMetadataDependency
+			var err error
+			deps, err = dependencyPackager.Package(dependency, p.stack)
+			if err != nil {
+				log.Printf("failed to handle dependency: %s\n", err)
+				return subcommands.ExitFailure
+			}
+
+			for _, dep := range deps {
+				dependencies = append(dependencies, cloudnative.BuildpackMetadataDependency{
+					ID:           dep.ID,
+					Version:      dep.Version,
+					URI:          dep.URI,
+					SHA256:       dep.SHA256,
+					Source:       dep.Source,
+					SourceSHA256: dep.SourceSHA256,
+					Stacks:       dep.Stacks,
+				})
+			}
 		}
 	}
 
-	// Copies current directory into tempdir for packaging, TODO: understand what is being copied here and confirm this still needs to be done
-	dir, err := cfPackager.CopyDirectory(".")
+	dir, err := ioutil.TempDir("", "buildpack-packager")
 	if err != nil {
-		log.Printf("failed to copy buildpack dir: %s\n", err.Error())
-		return subcommands.ExitFailure
+		panic(err)
 	}
 	defer os.RemoveAll(dir)
+
+	// write the buildpack.toml to disk
+	bpTOMLFile, err := os.OpenFile(filepath.Join(dir, "buildpack.toml"), os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		panic(err)
+	}
+	err = toml.NewEncoder(bpTOMLFile).Encode(buildpack)
+	if err != nil {
+		panic(err)
+	}
 
 	for _, hook := range []string{"compile", "detect", "finalize", "release", "supply"} {
 		if err := lifecycleHooks.Install(hook, dir); err != nil {
@@ -149,15 +176,10 @@ func (p *Package) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 		return subcommands.ExitFailure
 	}
 
-	if p.version == "" {
-		p.version = buildpack.Info.Version
-	}
-
 	// Uses V2B Packager to ensure cached dependencies are set up correctly
 	// Cached is always true, because the CNBs are being cached (even if their internal dependencies aren't) within the shimmed buildpack
-	zipFile, err := cfPackager.Package(dir, p.cacheDir, p.version, p.stack, true)
+	zipFile, err := cfPackager.Package(dir, p.cacheDir, buildpack.Info.Version, p.stack, true)
 	if err != nil {
-		log.Printf("failed to package CF buildpack: %s\n", err.Error())
 		return subcommands.ExitFailure
 	}
 

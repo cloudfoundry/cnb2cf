@@ -2,7 +2,7 @@ package untested
 
 import (
 	"fmt"
-	"os"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -10,19 +10,20 @@ import (
 	"github.com/cloudfoundry/cnb2cf/packager"
 )
 
-type installer interface {
+//go:generate faux -i Installer -o fakes/installer.go
+type Installer interface {
 	Download(uri, checksum, destination string) error
 }
 
 type DependencyPackager struct {
-	installer installer
+	installer Installer
 
 	scratchDirectory string
 	cached           bool
 	dev              bool
 }
 
-func NewDependencyPackager(scratchDirectory string, cached, dev bool, installer installer) DependencyPackager {
+func NewDependencyPackager(scratchDirectory string, cached, dev bool, installer Installer) DependencyPackager {
 	return DependencyPackager{
 		installer:        installer,
 		scratchDirectory: scratchDirectory,
@@ -31,15 +32,18 @@ func NewDependencyPackager(scratchDirectory string, cached, dev bool, installer 
 	}
 }
 
-func (dp DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDependency) ([]cloudnative.BuildpackMetadataDependency, error) {
-	root := filepath.Join(dp.scratchDirectory, dependency.ID)
-	downloadDir := filepath.Join(root, "download")
-	if err := os.MkdirAll(downloadDir, 0777); err != nil {
+func (dp DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDependency, stack string) ([]cloudnative.BuildpackMetadataDependency, error) {
+	if !dependency.MatchesStack(stack) {
+		return nil, nil
+	}
+
+	downloadDir, err := ioutil.TempDir(dp.scratchDirectory, "download")
+	if err != nil {
 		return nil, err
 	}
 
-	buildDir := filepath.Join(root, "build")
-	if err := os.MkdirAll(buildDir, 0777); err != nil {
+	buildDir, err := ioutil.TempDir(dp.scratchDirectory, "build")
+	if err != nil {
 		return nil, err
 	}
 
@@ -81,7 +85,7 @@ func (dp DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDep
 
 		if len(buildpack.Orders) > 0 {
 			for _, d := range buildpack.Metadata.Dependencies {
-				children, err := dp.Package(d)
+				children, err := dp.Package(d, stack)
 				if err != nil {
 					return nil, err
 				}

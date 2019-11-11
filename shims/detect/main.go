@@ -64,7 +64,7 @@ func detect(logger *libbuildpack.Logger) error {
 		OrderMetadata:   filepath.Join(v2BuildpackDir, "buildpack.toml"),
 		GroupMetadata:   filepath.Join(shims.V3MetadataDir, "group.toml"),
 		PlanMetadata:    filepath.Join(shims.V3MetadataDir, "plan.toml"),
-		Installer:       shims.NewCNBInstaller(manifest),
+		Installer:       shims.NewCNBInstaller(manifest, libbuildpack.NewInstaller(manifest)),
 		Environment:     cloudnative.NewEnvironment(),
 		Executor:        executable,
 	}

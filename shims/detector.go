@@ -3,10 +3,7 @@ package shims
 import (
 	"fmt"
 	"os"
-	"sort"
-	"strings"
 
-	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/packit"
 	"github.com/pkg/errors"
 )
@@ -56,13 +53,8 @@ func (d Detector) RunLifecycleDetect() error {
 	if err := d.Installer.InstallLifecycle(d.V3LifecycleDir); err != nil {
 		return errors.Wrap(err, "failed to install v3 lifecycle binaries")
 	}
-	var logger = libbuildpack.NewLogger(os.Stderr)
-	logger.Info("Environ from detect in cnb2cf")
+
 	env := os.Environ()
-
-	sort.Strings(env)
-
-	logger.Info(strings.Join(env, "\n"))
 
 	vcapServices := d.Environment.Services()
 	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", vcapServices))

@@ -119,7 +119,7 @@ func (f *Finalizer) GenerateOrderTOML() error {
 		return err
 	}
 
-	result := Order{}
+	result := []Order{}
 	for _, bptoml := range orderFiles {
 		var currentBpToml BuildpackTOML
 		tomlContent, err := ioutil.ReadFile(filepath.Join(f.OrderDir, bptoml.Name()))
@@ -129,8 +129,7 @@ func (f *Finalizer) GenerateOrderTOML() error {
 		if err := toml.Unmarshal(tomlContent, &currentBpToml); err != nil {
 			return err
 		}
-
-		result.Groups = append(result.Groups, currentBpToml.Info)
+		result = currentBpToml.Order
 	}
 
 	orderFile, err := os.OpenFile(f.OrderMetadata, os.O_CREATE|os.O_RDWR, 0644)
@@ -142,7 +141,7 @@ func (f *Finalizer) GenerateOrderTOML() error {
 	orderArray := struct {
 		Orders []Order `toml:"order"`
 	}{
-		Orders: []Order{result},
+		Orders: result,
 	}
 
 	return toml.NewEncoder(orderFile).Encode(orderArray)
