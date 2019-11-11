@@ -6,18 +6,24 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
+	"sort"
 	"sync"
 
-	"github.com/pkg/errors"
+	"code.cloudfoundry.org/lager"
+	"github.com/buildpack/libbuildpack/logger"
+	"github.com/cloudfoundry/dagger/utils"
+	"github.com/cloudfoundry/packit"
 )
 
 const (
+	Tiny              = "org.cloudfoundry.stacks.tiny"
 	CFLinuxFS3        = "org.cloudfoundry.stacks.cflinuxfs3"
 	Bionic            = "io.buildpacks.stacks.bionic"
-	DefaultBuildImage = "cloudfoundry/cnb-build:cflinuxfs3"
-	DefaultRunImage   = "cloudfoundry/cnb-run:cflinuxfs3"
-	TestBuilderImage  = "cfbuildpacks/spec-change-builder"
+	DefaultBuildImage = "cloudfoundry/build:full-cnb"
+	DefaultRunImage   = "cloudfoundry/run:full-cnb"
+	TestBuilderImage  = "cloudfoundry/cnb:cflinuxfs3"
+	Cflinuxfs3Builder = "cloudfoundry/cnb:cflinuxfs3"
+	BionicBuilder     = "cloudfoundry/cnb:bionic"
 	logBufferSize     = 1024
 )
 
@@ -26,34 +32,114 @@ var (
 	stdoutMutex             sync.Mutex
 	queueIsInitialized      bool
 	queueIsInitializedMutex sync.Mutex
+	builderMap              = map[string]string{
+		"cflinuxfs3": Cflinuxfs3Builder,
+		"bionic":     BionicBuilder,
+	}
 )
 
-// This returns the build logs as part of the error case
+type Executable interface {
+	Execute(packit.Execution) (stdout, stderr string, err error)
+}
+
+type Pack struct {
+	dir        string
+	image      string
+	env        map[string]string
+	buildpacks []string
+	offline    bool
+	executable Executable
+	verbose    bool
+	builder    string
+}
+
+type PackOption func(Pack) Pack
+
 func PackBuild(appDir string, buildpacks ...string) (*App, error) {
-	return PackBuildNamedImage(RandStringRunes(16), appDir, buildpacks...)
+	return NewPack(
+		appDir,
+		RandomImage(),
+		SetBuildpacks(buildpacks...),
+	).Build()
 }
 
 func PackBuildWithEnv(appDir string, env map[string]string, buildpacks ...string) (*App, error) {
-	return PackBuildNamedImageWithEnv(RandStringRunes(16), appDir, env, buildpacks...)
+	return NewPack(
+		appDir,
+		RandomImage(),
+		SetEnv(env),
+		SetBuildpacks(buildpacks...),
+	).Build()
 }
 
 // This pack builds an app from appDir into appImageName, to allow specifying an image name in a test
-func PackBuildNamedImage(appImage, appDir string, bpPaths ...string) (*App, error) {
-	return PackBuildNamedImageWithEnv(appImage, appDir, nil, bpPaths...)
+func PackBuildNamedImage(appImage, appDir string, buildpacks ...string) (*App, error) {
+	return NewPack(
+		appDir,
+		SetImage(appImage),
+		SetBuildpacks(buildpacks...),
+	).Build()
 }
 
-func PackBuildNamedImageWithEnv(appImage, appDir string, env map[string]string, bpPaths ...string) (*App, error) {
-	buildLogs := &bytes.Buffer{}
+func PackBuildNamedImageWithEnv(appImage, appDir string, env map[string]string, buildpacks ...string) (*App, error) {
+	return NewPack(
+		appDir,
+		SetImage(appImage),
+		SetEnv(env),
+		SetBuildpacks(buildpacks...),
+	).Build()
+}
 
-	cmd := exec.Command("pack", "build", appImage, "--builder", TestBuilderImage)
-	for _, bp := range bpPaths {
-		cmd.Args = append(cmd.Args, "--buildpack", bp)
+func SetImage(image string) PackOption {
+	return func(pack Pack) Pack {
+		pack.image = image
+		return pack
 	}
+}
 
-	for key, val := range env {
-		cmd.Args = append(cmd.Args, "-e", fmt.Sprintf("%s=%s", key, val))
+func RandomImage() PackOption {
+	return func(pack Pack) Pack {
+		pack.image = utils.RandStringRunes(16)
+		return pack
 	}
+}
 
+func SetEnv(env map[string]string) PackOption {
+	return func(pack Pack) Pack {
+		pack.env = env
+		return pack
+	}
+}
+
+func SetBuildpacks(buildpacks ...string) PackOption {
+	return func(pack Pack) Pack {
+		pack.buildpacks = append(pack.buildpacks, buildpacks...)
+		return pack
+	}
+}
+
+func SetOffline() PackOption {
+	return func(pack Pack) Pack {
+		pack.offline = true
+		return pack
+	}
+}
+
+func SetVerbose() PackOption {
+	return func(pack Pack) Pack {
+		pack.verbose = true
+		return pack
+	}
+}
+
+func SetBuilder(builder string) PackOption {
+	return func(pack Pack) Pack {
+		pack.builder = builder
+		return pack
+	}
+}
+
+func NewPack(dir string, options ...PackOption) Pack {
 	var w io.Writer
 	queueIsInitializedMutex.Lock()
 	if queueIsInitialized {
@@ -67,24 +153,79 @@ func PackBuildNamedImageWithEnv(appImage, appDir string, env map[string]string, 
 	}
 	queueIsInitializedMutex.Unlock()
 
-	cmd.Dir = appDir
-	cmd.Stdout = io.MultiWriter(w, buildLogs)
-	cmd.Stderr = io.MultiWriter(w, buildLogs)
-	if err := cmd.Run(); err != nil {
-		return nil, errors.Wrap(err, buildLogs.String())
+	buildLogs := &bytes.Buffer{}
+
+	logger.NewLogger(io.MultiWriter(w, buildLogs), io.MultiWriter(w, buildLogs))
+
+	pack := Pack{
+		dir:        dir,
+		executable: packit.NewExecutable("pack", lager.NewLogger("pack")),
 	}
 
-	sum := sha256.Sum256([]byte(fmt.Sprintf("index.docker.io/library/%s:latest", appImage))) //This is how pack makes cache image names
+	for _, option := range options {
+		pack = option(pack)
+	}
+
+	return pack
+}
+
+func (p Pack) Build() (*App, error) {
+	builderImage, err := getBuilderImage(p.builder)
+	if err != nil {
+		return nil, err
+	}
+
+	packArgs := []string{"build", p.image, "--builder", builderImage}
+	for _, bp := range p.buildpacks {
+		packArgs = append(packArgs, "--buildpack", bp)
+	}
+
+	keys := []string{}
+	for key := range p.env {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		packArgs = append(packArgs, "-e", fmt.Sprintf("%s=%s", key, p.env[key]))
+	}
+
+	if p.offline {
+		// probably want to pull here?
+		dockerLogger := lager.NewLogger("docker")
+		dockerExec := packit.NewExecutable("docker", dockerLogger)
+
+		stdout, stderr, err := dockerExec.Execute(packit.Execution{
+			Args: []string{"pull", builderImage},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to pull %s\n with stdout %s\n stderr %s\n%s", builderImage, stdout, stderr, err.Error())
+		}
+		packArgs = append(packArgs, "--network", "none", "--no-pull")
+	}
+
+	if p.verbose {
+		packArgs = append(packArgs, "-v")
+	}
+
+	buildLogs := bytes.NewBuffer(nil)
+	_, _, err = p.executable.Execute(packit.Execution{
+		Args:   packArgs,
+		Stdout: buildLogs,
+		Stderr: buildLogs,
+		Dir:    p.dir,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack build with output: %s\n %s\n", buildLogs, err.Error())
+	}
+
+	sum := sha256.Sum256([]byte(fmt.Sprintf("index.docker.io/library/%s:latest", p.image))) //This is how pack makes cache image names
 	cacheImage := fmt.Sprintf("pack-cache-%x", sum[:6])
 
-	app := &App{
-		ImageName:   appImage,
-		CacheImage:  cacheImage,
-		buildLogs:   buildLogs,
-		Env:         make(map[string]string),
-		fixtureName: appDir,
-	}
-	return app, nil
+	app := NewApp(p.dir, p.image, cacheImage, buildLogs, make(map[string]string))
+	return &app, nil
 }
 
 type chanWriter struct {
@@ -136,4 +277,17 @@ func printLog(log chan []byte) {
 		fmt.Print(string(line))
 		stdoutMutex.Unlock()
 	}
+}
+
+func getBuilderImage(packBuilder string) (string, error) {
+	if packBuilder == "" {
+		return Cflinuxfs3Builder, nil
+	}
+
+	val, found := builderMap[packBuilder]
+	if !found {
+		return "", fmt.Errorf("please use either 'bionic' or 'cflinuxfs3' as input keys to SetBuilder")
+	}
+
+	return val, nil
 }

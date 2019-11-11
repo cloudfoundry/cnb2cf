@@ -157,6 +157,12 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 
 	when("InstallLifecycle", func() {
 		it.Before(func() {
+			// create a manifest, and a real installer
+
+			realInstaller := libbuildpack.NewInstaller(manifest)
+			Expect(err).To(BeNil())
+			installer = shims.NewCNBInstaller(manifest, realInstaller)
+
 			contents, err := ioutil.ReadFile(filepath.Join("testdata", "buildpack", "lifecycle-bundle.tgz"))
 			Expect(err).ToNot(HaveOccurred())
 

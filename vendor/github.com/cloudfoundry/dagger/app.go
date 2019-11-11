@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 	"time"
 
+	"code.cloudfoundry.org/lager"
+	"github.com/cloudfoundry/packit"
 	"github.com/pkg/errors"
 )
 
@@ -33,25 +34,34 @@ type HealthCheck struct {
 	timeout  string
 }
 
+func NewApp(fixturePath, imageName, cacheImage string, buildLogs *bytes.Buffer, env map[string]string) App {
+	return App{
+		ImageName:   imageName,
+		CacheImage:  cacheImage,
+		buildLogs:   buildLogs,
+		Env:         env,
+		fixtureName: fixturePath,
+	}
+}
+
 func (a *App) Start() error {
 	return a.StartWithCommand("")
 }
 
 func (a *App) StartWithCommand(startCmd string) error {
-	buf := &bytes.Buffer{}
-
 	if a.Env["PORT"] == "" {
 		a.Env["PORT"] = "8080"
 	}
 
-	args := []string{"run", "-d", "-P"}
+	args := []string{"run", "-d", "-p", a.Env["PORT"], "-P"}
 	if a.Memory != "" {
 		args = append(args, "--memory", a.Memory)
 	}
 
-	if a.healthCheck.command != "" {
-		args = append(args, "--health-cmd", a.healthCheck.command)
+	if a.healthCheck.command == "" {
+		a.healthCheck.command = fmt.Sprintf("curl --fail http://localhost:%s || exit 1", a.Env["PORT"])
 	}
+	args = append(args, "--health-cmd", a.healthCheck.command)
 
 	if a.healthCheck.interval != "" {
 		args = append(args, "--health-interval", a.healthCheck.interval)
@@ -72,13 +82,17 @@ func (a *App) StartWithCommand(startCmd string) error {
 		args = append(args, startCmd)
 	}
 
-	cmd := exec.Command("docker", args...)
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
+	dockerLogger := lager.NewLogger("docker")
+	docker := packit.NewExecutable("docker", dockerLogger)
+	log, _, err := docker.Execute(packit.Execution{
+		Args: args,
+	})
+
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("failed to run docker image: %s\n with command: %s", a.ImageName, args))
 	}
-	a.ContainerID = buf.String()[:12]
+
+	a.ContainerID = log[:12]
 
 	ticker := time.NewTicker(1 * time.Second)
 	timeOut := time.After(2 * time.Minute)
@@ -86,17 +100,24 @@ docker:
 	for {
 		select {
 		case <-ticker.C:
-			status, err := exec.Command("docker", "inspect", "-f", "{{.State.Health.Status}}", a.ContainerID).Output()
+			health, err := exec.Command("docker", "inspect", "-f", "{{.State.Health}}", a.ContainerID).CombinedOutput()
 			if err != nil {
-				return err
+				return errors.Wrap(err, fmt.Sprintf("failed to docker inspect health of container: %s\n with health status: %s\n", a.ContainerID, string(health)))
 			}
 
-			if strings.TrimSpace(string(status)) == "unhealthy" {
+			status := strings.TrimSuffix(string(health), "\n")
+			if status != "<nil>" {
+				// Split string by space and remove curly brace in front
+				status = strings.Split(string(status), " ")[0][1:]
+				status = strings.TrimSpace(status)
+			}
+
+			if status == "unhealthy" {
 				logs, _ := a.Logs()
 				return errors.Errorf("app failed to start: %s\n%s\n", a.fixtureName, logs)
 			}
 
-			if strings.TrimSpace(string(status)) == "healthy" {
+			if status == "healthy" || status == "<nil>" {
 				break docker
 			}
 		case <-timeOut:
@@ -104,61 +125,114 @@ docker:
 		}
 	}
 
-	cmd = exec.Command("docker", "container", "port", a.ContainerID)
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "docker error: failed to get port")
+	log, _, err = docker.Execute(packit.Execution{
+		Args: []string{"container", "port", a.ContainerID},
+	})
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("docker error: failed to get port from container: %s", a.ContainerID))
 	}
-	a.port = strings.TrimSpace(strings.Split(buf.String(), ":")[1])
+
+	ports := strings.Split(log, ":")
+
+	if len(ports) > 1 {
+		a.port = strings.TrimSpace(ports[1])
+	} else {
+		return fmt.Errorf("unable to get port map from docker")
+	}
 
 	return nil
 }
 
 func (a *App) Destroy() error {
+	if a == nil {
+		return nil
+	}
+
+	dockerLogger := lager.NewLogger("docker")
+	docker := packit.NewExecutable("docker", dockerLogger)
+
 	cntrExists, err := DockerArtifactExists(a.ContainerID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find container %s: %s", a.ContainerID, err)
 	}
+
 	if cntrExists {
-		cmd := exec.Command("docker", "stop", a.ContainerID)
-		if err := cmd.Run(); err != nil {
-			return err
+		_, _, err := docker.Execute(packit.Execution{
+			Args: []string{"stop", a.ContainerID},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to stop container %s: %s", a.ContainerID, err)
 		}
 
-		cmd = exec.Command("docker", "rm", a.ContainerID, "-f", "--volumes")
-		if err := cmd.Run(); err != nil {
-			return err
+		_, _, err = docker.Execute(packit.Execution{
+			Args: []string{"rm", a.ContainerID, "-f", "--volumes"},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove container %s: %s", a.ContainerID, err)
 		}
 	}
 
 	imgExists, err := DockerArtifactExists(a.ImageName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find image %s: %s", a.ImageName, err)
 	}
 
 	if imgExists {
-		cmd := exec.Command("docker", "rmi", a.ImageName, "-f")
-		if err := cmd.Run(); err != nil {
-			return err
+		_, _, err = docker.Execute(packit.Execution{
+			Args: []string{"rmi", a.ImageName, "-f"},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove image %s: %s", a.ImageName, err)
 		}
 	}
 
 	cacheExists, err := DockerArtifactExists(a.CacheImage)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find cache image %s: %s", a.CacheImage, err)
 	}
 
 	if cacheExists {
-		cmd := exec.Command("docker", "rmi", a.CacheImage, "-f")
-		if err := cmd.Run(); err != nil {
-			return err
+		_, _, err = docker.Execute(packit.Execution{
+			Args: []string{"rmi", a.CacheImage, "-f"},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove cache image %s: %s", a.CacheImage, err)
 		}
 	}
 
-	cmd := exec.Command("docker", "image", "prune", "-f")
-	if err := cmd.Run(); err != nil {
-		return err
+	cacheBuildVolumeExists, err := DockerArtifactExists(fmt.Sprintf("%s.build", a.CacheImage))
+	if err != nil {
+		return fmt.Errorf("failed to find cache build volume %s.build: %s", a.CacheImage, err)
+	}
+
+	if cacheBuildVolumeExists {
+		_, _, err = docker.Execute(packit.Execution{
+			Args: []string{"volume", "rm", fmt.Sprintf("%s.build", a.CacheImage)},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove cache build volume %s.build: %s", a.CacheImage, err)
+		}
+	}
+
+	cacheLaunchVolumeExists, err := DockerArtifactExists(fmt.Sprintf("%s.launch", a.CacheImage))
+	if err != nil {
+		return fmt.Errorf("failed to find cache launch volume %s.launch: %s", a.CacheImage, err)
+	}
+
+	if cacheLaunchVolumeExists {
+		_, _, err = docker.Execute(packit.Execution{
+			Args: []string{"volume", "rm", fmt.Sprintf("%s.launch", a.CacheImage)},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove cache launch volume %s.launch: %s", a.CacheImage, err)
+		}
+	}
+
+	_, _, err = docker.Execute(packit.Execution{
+		Args: []string{"image", "prune", "-f"},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to prune images: %s", err)
 	}
 
 	*a = App{}
@@ -166,13 +240,15 @@ func (a *App) Destroy() error {
 }
 
 func (a *App) Logs() (string, error) {
-	cmd := exec.Command("docker", "logs", a.ContainerID)
-	output, err := cmd.CombinedOutput()
+	docker := packit.NewExecutable("docker", lager.NewLogger("docker"))
+	log, _, err := docker.Execute(packit.Execution{
+		Args: []string{"logs", a.ContainerID},
+	})
 	if err != nil {
 		return "", err
 	}
 
-	return stripColor(string(output)), nil
+	return stripColor(log), nil
 }
 
 func (a *App) BuildLogs() string {
@@ -189,13 +265,19 @@ func (a *App) SetHealthCheck(command, interval, timeout string) {
 
 func (a *App) Files(path string) ([]string, error) {
 	// Ensures that the error and results from "Permission denied" don't get sent to the output
-	line := fmt.Sprintf("docker run %s find ./.. -wholename *%s* 2>&1 | grep -v \"Permission denied\"", a.ImageName, path)
-	cmd := exec.Command("bash", "-c", line)
-	output, err := cmd.CombinedOutput()
+	docker := packit.NewExecutable("docker", lager.NewLogger("docker"))
+
+	log, _, err := docker.Execute(packit.Execution{
+		Args: []string{
+			"run", a.ImageName,
+			"find", "./..", fmt.Sprintf("-wholename *%s* 2>&1 | grep -v \"Permission denied\"", path),
+		},
+	})
 	if err != nil {
 		return []string{}, err
 	}
-	return strings.Split(string(output), "\n"), nil
+
+	return strings.Split(log, "\n"), nil
 }
 
 func (a *App) Info() (cID string, imageID string, cacheID []string, e error) {
@@ -207,8 +289,12 @@ func (a *App) Info() (cID string, imageID string, cacheID []string, e error) {
 	return a.ContainerID, a.ImageName, volumes, nil
 }
 
+func (a App) GetBaseURL() string {
+	return fmt.Sprintf("http://localhost:%s", a.port)
+}
+
 func (a *App) HTTPGet(path string) (string, map[string][]string, error) {
-	resp, err := http.Get("http://localhost:" + a.port + path)
+	resp, err := http.Get(fmt.Sprintf("%s%s", a.GetBaseURL(), path))
 	if err != nil {
 		return "", nil, err
 	}
@@ -240,13 +326,15 @@ func stripColor(input string) string {
 }
 
 func getCacheVolumes() ([]string, error) {
-	cmd := exec.Command("docker", "volume", "ls", "-q")
-	output, err := cmd.Output()
+	docker := packit.NewExecutable("docker", lager.NewLogger("docker"))
+	log, _, err := docker.Execute(packit.Execution{
+		Args: []string{"volume", "ls", "-q"},
+	})
 	if err != nil {
 		return []string{}, err
 	}
 
-	outputArr := strings.Split(string(output), "\n")
+	outputArr := strings.Split(log, "\n")
 	var finalVolumes []string
 	for _, line := range outputArr {
 		if strings.Contains(line, "pack-cache") {
@@ -257,13 +345,17 @@ func getCacheVolumes() ([]string, error) {
 }
 
 func DockerArtifactExists(name string) (bool, error) {
-	cmd := exec.Command("docker", "inspect", name)
-	if err := cmd.Run(); err != nil {
-		if strings.Contains(err.Error(), "No such object") {
+	docker := packit.NewExecutable("docker", lager.NewLogger("docker"))
+	_, errLog, err := docker.Execute(packit.Execution{
+		Args: []string{"inspect", name},
+	})
+	if err != nil {
+		if strings.Contains(errLog, "No such object") {
 			return false, nil
-		} else {
-			return false, err
 		}
+
+		return false, err
 	}
+
 	return true, nil
 }

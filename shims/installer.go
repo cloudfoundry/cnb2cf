@@ -151,17 +151,6 @@ func (c *CNBInstaller) InstallLifecycle(dst string) error {
 		return err
 	}
 
-	err = filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			panic(err)
-		}
-
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
-
 	firstDir, err := filepath.Glob(filepath.Join(tempDir, "*"))
 	if err != nil {
 		return err
