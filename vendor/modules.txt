@@ -1,4 +1,4 @@
-# cloud.google.com/go v0.48.0
+# cloud.google.com/go v0.49.0
 cloud.google.com/go/compute/metadata
 # code.cloudfoundry.org/lager v2.0.0+incompatible
 code.cloudfoundry.org/lager
@@ -26,7 +26,7 @@ github.com/cloudfoundry/libbuildpack/cutlass
 github.com/cloudfoundry/libbuildpack/ansicleaner
 github.com/cloudfoundry/libbuildpack/cutlass/docker
 github.com/cloudfoundry/libbuildpack/cutlass/glow
-# github.com/cloudfoundry/libcfbuildpack v1.91.6
+# github.com/cloudfoundry/libcfbuildpack v1.91.7
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
 github.com/cloudfoundry/libcfbuildpack/helper
 github.com/cloudfoundry/libcfbuildpack/buildpack
@@ -123,7 +123,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20191119060738-e882bf8e40c2
+# golang.org/x/sys v0.0.0-20191119195528-f068ffe820e4
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/encoding
@@ -158,5 +158,5 @@ google.golang.org/appengine/internal/remote_api
 gopkg.in/fsnotify.v1
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/yaml.v2 v2.2.6
+# gopkg.in/yaml.v2 v2.2.7
 gopkg.in/yaml.v2
