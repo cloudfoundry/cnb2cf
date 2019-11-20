@@ -2,6 +2,7 @@ package shims_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -98,6 +99,38 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))
 		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
 		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+	})
+
+	when("the LOG_LEVEL environment variable is set", func() {
+		logLevel := "debug"
+
+		it.Before(func() {
+			Expect(os.Setenv("LOG_LEVEL", logLevel)).To(Succeed())
+		})
+
+		it.After(func() {
+			Expect(os.Unsetenv("LOG_LEVEL")).To(Succeed())
+		})
+
+		it("is passed to the lifecycle", func() {
+			Expect(detector.Detect()).To(Succeed())
+
+			Expect(installer.InstallCNBsCall.Receives.OrderFile).To(Equal(orderMetadata))
+			Expect(installer.InstallCNBsCall.Receives.InstallDir).To(Equal(v3BuildpacksDir))
+
+			Expect(installer.InstallLifecycleCall.Receives.Dst).To(Equal(v3LifecycleDir))
+
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Args).To(Equal([]string{
+				"-app", v3AppDir,
+				"-buildpacks", v3BuildpacksDir,
+				"-order", orderMetadata,
+				"-group", groupMetadata,
+				"-plan", planMetadata,
+				"-log-level", logLevel,
+			}))
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))
+			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement(fmt.Sprintf(`LOG_LEVEL=%s`, logLevel)))
+		})
 	})
 
 	when("v3-detector errors out", func() {

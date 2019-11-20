@@ -112,3 +112,12 @@ $ cnb2cf create -config shim.yml
 # then upload to Cloud Foundry using the cf cli
 $ cf create-buildpack my_shimmed_buildpack python_buildpack-cflinuxfs3-1.0.0.zip 1
 ```
+
+
+## Debug Options
+
+For additional output during detection phase set the CF environment variable
+`LOG_LEVEL` to `debug`, using `cf set-env` Additional `LOG_LEVEL` options are
+specified
+[here](https://github.com/apex/log/blob/baa5455d10123171ef1951381610c51ad618542a/levels.go#L25)
+

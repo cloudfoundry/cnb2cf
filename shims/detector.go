@@ -62,14 +62,21 @@ func (d Detector) RunLifecycleDetect() error {
 	stack := d.Environment.Stack()
 	env = append(env, fmt.Sprintf("CNB_STACK_ID=org.cloudfoundry.stacks.%s", stack))
 
+	logLevel := os.Getenv("LOG_LEVEL")
+
+	args := []string{
+		"-app", d.AppDir,
+		"-buildpacks", d.V3BuildpacksDir,
+		"-order", d.OrderMetadata,
+		"-group", d.GroupMetadata,
+		"-plan", d.PlanMetadata,
+	}
+	if logLevel != "" {
+		args = append(args, "-log-level", logLevel)
+	}
 	_, _, err := d.Executor.Execute(packit.Execution{
-		Args: []string{
-			"-app", d.AppDir,
-			"-buildpacks", d.V3BuildpacksDir,
-			"-order", d.OrderMetadata,
-			"-group", d.GroupMetadata,
-			"-plan", d.PlanMetadata,
-		},
+		Args:   args,
+		Stdout: os.Stderr,
 		Stderr: os.Stderr,
 		Env:    env,
 	})

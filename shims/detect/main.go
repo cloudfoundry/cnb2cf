@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	var logger = libbuildpack.NewLogger(os.Stderr)
+	var logger = libbuildpack.NewLogger(ioutil.Discard)
 	if len(os.Args) != 2 {
 		logger.Error("Incorrect number of arguments")
 		os.Exit(1)
