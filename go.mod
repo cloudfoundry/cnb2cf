@@ -21,3 +21,5 @@ require (
 	github.com/tidwall/gjson v1.3.4 // indirect
 	gopkg.in/yaml.v2 v2.2.7
 )
+
+go 1.13

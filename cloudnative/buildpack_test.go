@@ -69,6 +69,7 @@ version = "some-dependency-version"
 [[order.group]]
 id = "some-dependency"
 version = "some-dependency-version"
+optional = true
 `
 
 			err := ioutil.WriteFile(path, []byte(contents), 0644)
@@ -111,8 +112,9 @@ version = "some-dependency-version"
 					{
 						Groups: []cloudnative.BuildpackOrderGroup{
 							{
-								ID:      "some-dependency",
-								Version: "some-dependency-version",
+								ID:       "some-dependency",
+								Version:  "some-dependency-version",
+								Optional: true,
 							},
 						},
 					},

@@ -30,8 +30,9 @@ type BuildpackOrder struct {
 }
 
 type BuildpackOrderGroup struct {
-	ID      string `toml:"id"`
-	Version string `toml:"version"`
+	ID       string `toml:"id"`
+	Version  string `toml:"version"`
+	Optional bool   `toml:"optional,omitempty"`
 }
 
 func ParseBuildpack(path string) (Buildpack, error) {
