@@ -3,7 +3,7 @@ module github.com/cloudfoundry/cnb2cf
 require (
 	code.cloudfoundry.org/lager v2.0.0+incompatible
 	github.com/BurntSushi/toml v0.3.1
-	github.com/buildpack/libbuildpack v1.25.4
+	github.com/buildpack/libbuildpack v1.25.5
 	github.com/cloudfoundry/dagger v0.0.0-20191105211753-5d1b464d63f1
 	github.com/cloudfoundry/libbuildpack v0.0.0-20191107210012-50982838f2a1
 	github.com/cloudfoundry/libcfbuildpack v1.91.7
