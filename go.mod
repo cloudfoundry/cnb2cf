@@ -6,7 +6,7 @@ require (
 	github.com/buildpack/libbuildpack v1.25.7
 	github.com/cloudfoundry/dagger v0.0.0-20191105211753-5d1b464d63f1
 	github.com/cloudfoundry/libbuildpack v0.0.0-20191107210012-50982838f2a1
-	github.com/cloudfoundry/libcfbuildpack v1.91.11
+	github.com/cloudfoundry/libcfbuildpack v1.91.12
 	github.com/cloudfoundry/packit v0.0.0-20191015134313-760041110f18
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
@@ -14,7 +14,7 @@ require (
 	github.com/google/subcommands v1.0.1
 	github.com/jarcoal/httpmock v1.0.4
 	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.8.0
+	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.8.1
 	github.com/rakyll/statik v0.1.6
 	github.com/sclevine/spec v1.4.0
