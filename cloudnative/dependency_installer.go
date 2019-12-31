@@ -2,10 +2,13 @@ package cloudnative
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/cloudfoundry/libbuildpack"
-	"github.com/cloudfoundry/libbuildpack/packager"
 )
 
 type DependencyInstaller struct{}
@@ -15,7 +18,55 @@ func NewDependencyInstaller() DependencyInstaller {
 }
 
 func (di DependencyInstaller) Download(uri, checksum, destination string) error {
-	if err := packager.DownloadFromURI(uri, destination); err != nil {
+	err := os.MkdirAll(filepath.Dir(destination), 0755)
+	if err != nil {
+		return err
+	}
+
+	output, err := os.Create(destination)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+
+	u, err := url.Parse(uri)
+	if err != nil {
+		return err
+	}
+
+	var source io.ReadCloser
+
+	if u.Scheme == "file" {
+		source, err = os.Open(u.Path)
+		if err != nil {
+			return err
+		}
+		defer source.Close()
+	} else {
+		client := http.Client{}
+		req, err := http.NewRequest("GET", uri, nil)
+		if err != nil {
+			return err
+		}
+		gitToken := os.Getenv("GITHUB_TOKEN")
+		if gitToken != "" {
+			req.Header["Authorization"] = []string{"token " + gitToken}
+		}
+		response, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer response.Body.Close()
+		source = response.Body
+
+		if response.StatusCode < 200 || response.StatusCode > 299 {
+			return fmt.Errorf("could not download: %d", response.StatusCode)
+		}
+	}
+
+	_, err = io.Copy(output, source)
+
+	if err != nil {
 		return err
 	}
 

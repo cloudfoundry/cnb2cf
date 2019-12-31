@@ -1,18 +1,20 @@
 package shims
 
 import (
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/buildpack/libbuildpack/buildpack"
-
-	buildpack2 "github.com/buildpack/libbuildpack/buildpack"
 )
 
+// need to add optional stuff here
+
+
 type Order struct {
-	Groups []buildpack2.Info `toml:"group"`
+	Groups []cloudnative.BuildpackOrderGroup `toml:"group"`
 }
 
 type BuildpackTOML struct {

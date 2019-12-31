@@ -3,8 +3,11 @@ package cloudnative_test
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
@@ -61,6 +64,43 @@ func testDependencyInstaller(t *testing.T, when spec.G, it spec.S) {
 			contents, err := ioutil.ReadFile(destination)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("dependency-contents"))
+		})
+
+		when("GITHUB_TOKEN env var is set", func() {
+			var prevAuthToken string
+			var tokenVal string
+			it.Before(func() {
+				// what should this actually be???
+
+				tokenVal = "some-auth-token"
+				prevAuthToken = os.Getenv("GITHUB_TOKEN")
+				Expect(os.Setenv("GITHUB_TOKEN", tokenVal)).To(Succeed())
+
+				httpmock.RegisterResponder("GET", "https://example.com/uri-dependency.tgz", func(request *http.Request) (response *http.Response, e error) {
+					contents := request.Header["Authorization"]
+					res := new(http.Response)
+					expectedToken := []string{"token " +tokenVal}
+					if !reflect.DeepEqual(expectedToken, contents) {
+						return res, fmt.Errorf("unexpected header value '%s' vs '%s'", contents, expectedToken)
+					}
+					res.StatusCode = 200
+					res.Body = ioutil.NopCloser(strings.NewReader("dependency-contents"))
+					res.Request = request
+					return res, nil
+				})
+			})
+
+			it.After(func() {
+				Expect(os.Setenv("GITHUB_TOKEN", prevAuthToken)).To(Succeed())
+			})
+			it("uses correct auth to grab dependency", func() {
+				err := installer.Download(uri, checksum, destination)
+				Expect(err).NotTo(HaveOccurred())
+
+				contents, err := ioutil.ReadFile(destination)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(contents)).To(Equal("dependency-contents"))
+			})
 		})
 
 		when("the dependency cannot be downloaded", func() {
