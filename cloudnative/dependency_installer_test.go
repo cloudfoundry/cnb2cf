@@ -66,15 +66,15 @@ func testDependencyInstaller(t *testing.T, when spec.G, it spec.S) {
 			Expect(string(contents)).To(Equal("dependency-contents"))
 		})
 
-		when("GITHUB_TOKEN env var is set", func() {
+		when("GIT_TOKEN env var is set", func() {
 			var prevAuthToken string
 			var tokenVal string
 			it.Before(func() {
 				// what should this actually be???
 
 				tokenVal = "some-auth-token"
-				prevAuthToken = os.Getenv("GITHUB_TOKEN")
-				Expect(os.Setenv("GITHUB_TOKEN", tokenVal)).To(Succeed())
+				prevAuthToken = os.Getenv("GIT_TOKEN")
+				Expect(os.Setenv("GIT_TOKEN", tokenVal)).To(Succeed())
 
 				httpmock.RegisterResponder("GET", "https://example.com/uri-dependency.tgz", func(request *http.Request) (response *http.Response, e error) {
 					contents := request.Header["Authorization"]
@@ -91,7 +91,7 @@ func testDependencyInstaller(t *testing.T, when spec.G, it spec.S) {
 			})
 
 			it.After(func() {
-				Expect(os.Setenv("GITHUB_TOKEN", prevAuthToken)).To(Succeed())
+				Expect(os.Setenv("GIT_TOKEN", prevAuthToken)).To(Succeed())
 			})
 			it("uses correct auth to grab dependency", func() {
 				err := installer.Download(uri, checksum, destination)

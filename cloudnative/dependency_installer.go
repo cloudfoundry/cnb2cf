@@ -48,7 +48,7 @@ func (di DependencyInstaller) Download(uri, checksum, destination string) error 
 		if err != nil {
 			return err
 		}
-		gitToken := os.Getenv("GITHUB_TOKEN")
+		gitToken := os.Getenv("GIT_TOKEN")
 		if gitToken != "" {
 			req.Header["Authorization"] = []string{"token " + gitToken}
 		}
