@@ -6,6 +6,8 @@ code.cloudfoundry.org/lager
 github.com/BurntSushi/toml
 # github.com/Masterminds/semver v1.5.0
 github.com/Masterminds/semver
+# github.com/VividCortex/ewma v1.1.1
+github.com/VividCortex/ewma
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
 # github.com/buildpack/libbuildpack v1.25.11
@@ -16,10 +18,13 @@ github.com/buildpack/libbuildpack/internal
 github.com/buildpack/libbuildpack/layers
 github.com/buildpack/libbuildpack/logger
 github.com/buildpack/libbuildpack/stack
-# github.com/cloudfoundry/dagger v0.0.0-20191105211753-5d1b464d63f1
+# github.com/cheggaaa/pb/v3 v3.0.4
+github.com/cheggaaa/pb/v3
+github.com/cheggaaa/pb/v3/termutil
+# github.com/cloudfoundry/dagger v0.0.0-20200115142400-b69a9b4eabf4
 github.com/cloudfoundry/dagger
 github.com/cloudfoundry/dagger/utils
-# github.com/cloudfoundry/libbuildpack v0.0.0-20191107210012-50982838f2a1
+# github.com/cloudfoundry/libbuildpack v0.0.0-20191216201708-1647f144742d
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/ansicleaner
 github.com/cloudfoundry/libbuildpack/cutlass
@@ -34,15 +39,18 @@ github.com/cloudfoundry/libcfbuildpack/internal
 github.com/cloudfoundry/libcfbuildpack/layers
 github.com/cloudfoundry/libcfbuildpack/logger
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
-# github.com/cloudfoundry/packit v0.0.0-20191015134313-760041110f18
-github.com/cloudfoundry/packit
+# github.com/cloudfoundry/packit v0.0.0-20200129211718-a2b2b4f67a52
+github.com/cloudfoundry/packit/cargo
+github.com/cloudfoundry/packit/cargo/jam/commands
+github.com/cloudfoundry/packit/pexec
+github.com/cloudfoundry/packit/scribe
 # github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484
 github.com/elazarl/goproxy
 # github.com/fatih/color v1.9.0
 github.com/fatih/color
-# github.com/golang/mock v1.3.1
+# github.com/golang/mock v1.4.0
 github.com/golang/mock/gomock
-# github.com/golang/protobuf v1.3.2
+# github.com/golang/protobuf v1.3.3
 github.com/golang/protobuf/proto
 # github.com/google/go-github v17.0.0+incompatible
 github.com/google/go-github/github
@@ -62,6 +70,8 @@ github.com/jarcoal/httpmock
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
+# github.com/mattn/go-runewidth v0.0.7
+github.com/mattn/go-runewidth
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
 # github.com/onsi/ginkgo v1.11.0
@@ -96,7 +106,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/pkg/errors v0.8.1
+# github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/rakyll/statik v0.1.6
 github.com/rakyll/statik/fs

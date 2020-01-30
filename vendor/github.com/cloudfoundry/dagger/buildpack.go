@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/cloudfoundry/dagger/utils"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -14,6 +13,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/cloudfoundry/dagger/utils"
 
 	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/pkg/errors"
@@ -54,10 +55,6 @@ func FindBPRoot() (string, error) {
 }
 
 func PackageBuildpack(root string) (string, error) {
-	if bpPackagedPath := os.Getenv("BP_PACKAGED_PATH"); bpPackagedPath != "" {
-		return bpPackagedPath, nil
-	}
-
 	path, err := filepath.Abs(root)
 	if err != nil {
 		return "", err
@@ -88,10 +85,14 @@ func PackageCachedBuildpack(root string) (string, string, error) {
 	cmd := exec.Command("scripts/package.sh", "-c", "-v", "0.0.0")
 	cmd.Env = append(os.Environ(), fmt.Sprintf("PACKAGE_DIR=%s", path))
 	cmd.Dir = root
-	cmd.Stderr = os.Stderr
-	out, err := cmd.Output()
 
-	return fmt.Sprintf("%s-cached", path), string(out), err
+	buffer := bytes.NewBuffer(nil)
+
+	cmd.Stdout = io.MultiWriter(os.Stdout, buffer)
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+
+	return fmt.Sprintf("%s-cached", path), buffer.String(), err
 }
 
 func GetLatestBuildpack(name string) (string, error) {
@@ -103,9 +104,6 @@ func GetLatestUnpackagedBuildpack(name string) (string, error) {
 }
 
 func DeleteBuildpack(root string) error {
-	if root == os.Getenv("BP_PACKAGED_PATH") {
-		return nil
-	}
 	return os.RemoveAll(root)
 }
 

@@ -8,10 +8,10 @@ import (
 	"strconv"
 
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
+	"github.com/cloudfoundry/packit/pexec"
 
 	"github.com/BurntSushi/toml"
 	"github.com/cloudfoundry/libbuildpack"
-	"github.com/cloudfoundry/packit"
 	"github.com/pkg/errors"
 
 	buildpack2 "github.com/buildpack/libbuildpack/buildpack"
@@ -244,7 +244,7 @@ func (f *Finalizer) RunLifecycleBuild() error {
 	services := f.Environment.Services()
 	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", services))
 
-	_, _, err := f.Executable.Execute(packit.Execution{
+	_, _, err := f.Executable.Execute(pexec.Execution{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 		Env:    env,

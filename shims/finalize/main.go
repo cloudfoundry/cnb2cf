@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/shims"
 	"github.com/cloudfoundry/libbuildpack"
-	"github.com/cloudfoundry/packit"
+	"github.com/cloudfoundry/packit/pexec"
 )
 
 func main() {
@@ -64,10 +64,10 @@ func finalize(logger *libbuildpack.Logger) error {
 	installer := shims.NewCNBInstaller(manifest, libbuildpack.NewInstaller(manifest))
 
 	detectExecPath := filepath.Join(tempDir, shims.V3Detector)
-	detectExecutable := packit.NewExecutable(detectExecPath, lager.NewLogger("detect"))
+	detectExecutable := pexec.NewExecutable(detectExecPath, lager.NewLogger("detect"))
 
 	finalizeExecPath := filepath.Join(tempDir, shims.V3Builder)
-	finalizeExecutable := packit.NewExecutable(finalizeExecPath, lager.NewLogger("finalize"))
+	finalizeExecutable := pexec.NewExecutable(finalizeExecPath, lager.NewLogger("finalize"))
 
 	finalizer := shims.Finalizer{
 		V2AppDir:        v2AppDir,

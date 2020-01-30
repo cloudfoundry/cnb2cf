@@ -11,9 +11,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
+	"github.com/cloudfoundry/packit/cargo"
+	"github.com/cloudfoundry/packit/cargo/jam/commands"
+	"github.com/cloudfoundry/packit/pexec"
+	"github.com/cloudfoundry/packit/scribe"
 	"github.com/pkg/errors"
 
 	_ "github.com/cloudfoundry/cnb2cf/statik"
@@ -43,27 +48,60 @@ func BuildCNB(extractDir, outputDir string, cached bool, version string) (string
 		return "", "", err
 	}
 
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	globalCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
-
-	packager, err := cnbpackager.New(foundSrc, outputDir, version, globalCacheDir)
-	if err != nil {
-		return "", "", err
-	}
-
-	if err := packager.Create(cached); err != nil {
-		return "", "", err
-	}
-
-	if err := packager.Archive(); err != nil {
-		return "", "", err
-	}
-
 	path := fmt.Sprintf("%s.tgz", outputDir)
+
+	_, err = os.Stat(filepath.Join(foundSrc, ".packit"))
+	if err != nil {
+		// RUN packager
+		usr, err := user.Current()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		globalCacheDir := filepath.Join(usr.HomeDir, cnbpackager.DefaultCacheBase)
+
+		packager, err := cnbpackager.New(foundSrc, outputDir, version, globalCacheDir)
+		if err != nil {
+			return "", "", err
+		}
+
+		if err := packager.Create(cached); err != nil {
+			return "", "", err
+		}
+
+		if err := packager.Archive(); err != nil {
+			return "", "", err
+		}
+	} else {
+		// RUN jam pack
+		logger := scribe.NewLogger(os.Stdout)
+		bash := pexec.NewExecutable("bash", lager.NewLogger("pre-packager"))
+
+		transport := cargo.NewTransport()
+		directoryDuplicator := cargo.NewDirectoryDuplicator()
+		buildpackParser := cargo.NewBuildpackParser()
+		fileBundler := cargo.NewFileBundler()
+		tarBuilder := cargo.NewTarBuilder(logger)
+		prePackager := cargo.NewPrePackager(bash, logger, scribe.NewWriter(os.Stdout, scribe.WithIndent(2)))
+		dependencyCacher := cargo.NewDependencyCacher(transport, logger)
+		command := commands.NewPack(directoryDuplicator, buildpackParser, prePackager, dependencyCacher, fileBundler, tarBuilder, os.Stdout)
+
+		args := []string{
+			"--buildpack", filepath.Join(foundSrc, "buildpack.toml"),
+			"--output", path,
+			"--version", version,
+		}
+
+		if cached {
+			args = append(args, "--offline")
+		}
+
+		err = command.Execute(args)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)

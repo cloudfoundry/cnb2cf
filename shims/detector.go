@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudfoundry/packit"
+	"github.com/cloudfoundry/packit/pexec"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +22,7 @@ type Installer interface {
 
 //go:generate faux --interface Executable --output fakes/executable.go
 type Executable interface {
-	Execute(packit.Execution) (stdout, stderr string, err error)
+	Execute(pexec.Execution) (stdout, stderr string, err error)
 }
 
 type Detector struct {
@@ -74,7 +74,7 @@ func (d Detector) RunLifecycleDetect() error {
 	if logLevel != "" {
 		args = append(args, "-log-level", logLevel)
 	}
-	_, _, err := d.Executor.Execute(packit.Execution{
+	_, _, err := d.Executor.Execute(pexec.Execution{
 		Args:   args,
 		Stdout: os.Stderr,
 		Stderr: os.Stderr,

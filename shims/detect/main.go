@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/shims"
 	"github.com/cloudfoundry/libbuildpack"
-	"github.com/cloudfoundry/packit"
+	"github.com/cloudfoundry/packit/pexec"
 	"github.com/pkg/errors"
 )
 
@@ -55,7 +55,7 @@ func detect(logger *libbuildpack.Logger) error {
 	}
 
 	detectExecPath := filepath.Join(tempDir, shims.V3Detector)
-	executable := packit.NewExecutable(detectExecPath, lager.NewLogger("detect"))
+	executable := pexec.NewExecutable(detectExecPath, lager.NewLogger("detect"))
 
 	detector := shims.Detector{
 		V3LifecycleDir:  tempDir,

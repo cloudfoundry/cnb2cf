@@ -1,18 +1,20 @@
 package dagger
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
 	"sort"
+	"strings"
 	"sync"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/buildpack/libbuildpack/logger"
 	"github.com/cloudfoundry/dagger/utils"
-	"github.com/cloudfoundry/packit"
+	"github.com/cloudfoundry/packit/pexec"
 )
 
 const (
@@ -39,7 +41,7 @@ var (
 )
 
 type Executable interface {
-	Execute(packit.Execution) (stdout, stderr string, err error)
+	Execute(pexec.Execution) (stdout, stderr string, err error)
 }
 
 type Pack struct {
@@ -51,6 +53,7 @@ type Pack struct {
 	executable Executable
 	verbose    bool
 	builder    string
+	noPull     bool
 }
 
 type PackOption func(Pack) Pack
@@ -121,6 +124,7 @@ func SetBuildpacks(buildpacks ...string) PackOption {
 func SetOffline() PackOption {
 	return func(pack Pack) Pack {
 		pack.offline = true
+		pack = NoPull()(pack)
 		return pack
 	}
 }
@@ -135,6 +139,13 @@ func SetVerbose() PackOption {
 func SetBuilder(builder string) PackOption {
 	return func(pack Pack) Pack {
 		pack.builder = builder
+		return pack
+	}
+}
+
+func NoPull() PackOption {
+	return func(pack Pack) Pack {
+		pack.noPull = true
 		return pack
 	}
 }
@@ -159,7 +170,7 @@ func NewPack(dir string, options ...PackOption) Pack {
 
 	pack := Pack{
 		dir:        dir,
-		executable: packit.NewExecutable("pack", lager.NewLogger("pack")),
+		executable: pexec.NewExecutable("pack", lager.NewLogger("pack")),
 	}
 
 	for _, option := range options {
@@ -191,18 +202,22 @@ func (p Pack) Build() (*App, error) {
 		packArgs = append(packArgs, "-e", fmt.Sprintf("%s=%s", key, p.env[key]))
 	}
 
+	if p.noPull {
+		packArgs = append(packArgs, "--no-pull")
+	}
+
 	if p.offline {
 		// probably want to pull here?
 		dockerLogger := lager.NewLogger("docker")
-		dockerExec := packit.NewExecutable("docker", dockerLogger)
+		dockerExec := pexec.NewExecutable("docker", dockerLogger)
 
-		stdout, stderr, err := dockerExec.Execute(packit.Execution{
+		stdout, stderr, err := dockerExec.Execute(pexec.Execution{
 			Args: []string{"pull", builderImage},
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to pull %s\n with stdout %s\n stderr %s\n%s", builderImage, stdout, stderr, err.Error())
 		}
-		packArgs = append(packArgs, "--network", "none", "--no-pull")
+		packArgs = append(packArgs, "--network", "none")
 	}
 
 	if p.verbose {
@@ -210,7 +225,7 @@ func (p Pack) Build() (*App, error) {
 	}
 
 	buildLogs := bytes.NewBuffer(nil)
-	_, _, err = p.executable.Execute(packit.Execution{
+	_, _, err = p.executable.Execute(pexec.Execution{
 		Args:   packArgs,
 		Stdout: buildLogs,
 		Stderr: buildLogs,
@@ -218,7 +233,12 @@ func (p Pack) Build() (*App, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to pack build with output: %s\n %s\n", buildLogs, err.Error())
+		output := &strings.Builder{}
+		printErr := printBufferSafely(buildLogs, output)
+		if printErr != nil {
+			return nil, printErr
+		}
+		return nil, fmt.Errorf("failed to pack build with output:\n%s\n--> error message: %w", output, err)
 	}
 
 	sum := sha256.Sum256([]byte(fmt.Sprintf("index.docker.io/library/%s:latest", p.image))) //This is how pack makes cache image names
@@ -226,6 +246,20 @@ func (p Pack) Build() (*App, error) {
 
 	app := NewApp(p.dir, p.image, cacheImage, buildLogs, make(map[string]string))
 	return &app, nil
+}
+
+func printBufferSafely(src io.Reader, dst io.Writer) error {
+	var err error
+	for err == nil {
+		_, err = io.CopyN(dst, src, bufio.MaxScanTokenSize-1024)
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		fmt.Fprintln(dst)
+	}
+
+	return nil
 }
 
 type chanWriter struct {

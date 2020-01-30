@@ -5,7 +5,7 @@
 package shims_test
 
 import (
-	packit "github.com/cloudfoundry/packit"
+	pexec "github.com/cloudfoundry/packit/pexec"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -136,7 +136,7 @@ func (m *MockExecutable) EXPECT() *MockExecutableMockRecorder {
 }
 
 // Execute mocks base method
-func (m *MockExecutable) Execute(arg0 packit.Execution) (string, string, error) {
+func (m *MockExecutable) Execute(arg0 pexec.Execution) (string, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", arg0)
 	ret0, _ := ret[0].(string)
