@@ -26,7 +26,7 @@ COMPILE
         chmod +x ./template/bin/compile
 
         go get github.com/rakyll/statik
-        statik -src=./template -f
+        statik --src=./template -f --include '*'
         go build -mod=vendor -o build/cnb2cf main.go
     popd > /dev/null || return
 }
