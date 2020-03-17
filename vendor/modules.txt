@@ -108,7 +108,7 @@ github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
-# github.com/rakyll/statik v0.1.6
+# github.com/rakyll/statik v0.1.7
 github.com/rakyll/statik/fs
 # github.com/sclevine/spec v1.4.0
 github.com/sclevine/spec

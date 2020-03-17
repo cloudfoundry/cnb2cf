@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 
@@ -219,6 +220,10 @@ func (f *Finalizer) MoveV3Layers() error {
 				return err
 			}
 		}
+	}
+
+	if err := os.RemoveAll(f.V3LayersDir); err != nil {
+		return err
 	}
 
 	return nil

@@ -332,6 +332,8 @@ version = "4.5.6"
 			Expect(filepath.Join(v2AppDir, ".cloudfoundry", "metadata.toml")).To(BeAnExistingFile())
 			Expect(filepath.Join(v2DepsDir, "layers")).To(BeAnExistingFile())
 			Expect(filepath.Join(v2DepsDir, "anotherLayers")).To(BeAnExistingFile())
+
+			Expect(v3LayersDir).NotTo(BeAnExistingFile())
 		})
 
 		it("copies cacheable layers to the cache/cnb directory", func() {
