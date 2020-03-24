@@ -376,9 +376,15 @@ func (f *Finalizer) moveV3Config() error {
 	return nil
 }
 
-func (f *Finalizer) moveV3Layer(layersPath string) error {
-	layersName := filepath.Base(layersPath)
-	tomls, err := filepath.Glob(filepath.Join(layersPath, "*.toml"))
+func (f *Finalizer) moveV3Layer(v3LayersPath string) error {
+	layersName := filepath.Base(v3LayersPath)
+
+	v2DepsLayersDir := filepath.Join(f.V2DepsDir, layersName)
+	if err := os.MkdirAll(v2DepsLayersDir, os.ModePerm); err != nil {
+		return err
+	}
+
+	tomls, err := filepath.Glob(filepath.Join(v3LayersPath, "*.toml"))
 	if err != nil {
 		return err
 	}
@@ -390,22 +396,29 @@ func (f *Finalizer) moveV3Layer(layersPath string) error {
 		}
 
 		tomlSize := len(".toml")
+		layerPath := tomlFile[:len(tomlFile)-tomlSize]
+		layerName := filepath.Base(layerPath)
+
 		if decodedToml.Cache {
-			layerPath := tomlFile[:len(tomlFile)-tomlSize]
-			layerName := filepath.Base(layerPath)
 			if err := f.cacheLayer(layerPath, layersName, layerName); err != nil {
 				return err
 			}
 		}
 
-	}
+		if decodedToml.Launch {
+			v2DepsLayerDir := filepath.Join(v2DepsLayersDir, layerName)
+			if err := os.MkdirAll(v2DepsLayerDir, os.ModePerm); err != nil {
+				return err
+			}
 
-	if err := os.MkdirAll(filepath.Join(f.V2DepsDir, layersName), os.ModePerm); err != nil {
-		return err
-	}
+			if err := libbuildpack.CopyDirectory(filepath.Join(v3LayersPath, layerName), v2DepsLayerDir); err != nil {
+				return err
+			}
 
-	if err := libbuildpack.CopyDirectory(layersPath, filepath.Join(f.V2DepsDir, layersName)); err != nil {
-		return err
+			if err := libbuildpack.CopyFile(filepath.Join(v3LayersPath, layerName+".toml"), v2DepsLayerDir+".toml"); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

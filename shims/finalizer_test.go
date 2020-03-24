@@ -325,13 +325,21 @@ version = "4.5.6"
 			Expect(os.MkdirAll(filepath.Join(v3LayersDir, "layers"), 0777)).To(Succeed())
 			Expect(os.MkdirAll(filepath.Join(v3LayersDir, "anotherLayers", "innerLayer"), 0777)).To(Succeed())
 			Expect(ioutil.WriteFile(filepath.Join(v3LayersDir, "anotherLayers", "innerLayer.toml"), []byte("cache=true"), 0666)).To(Succeed())
+
+			Expect(os.MkdirAll(filepath.Join(v3LayersDir, "anothernotherLayers", "innerLayer"), 0777)).To(Succeed())
+			Expect(ioutil.WriteFile(filepath.Join(v3LayersDir, "anothernotherLayers", "innerLayer.toml"), []byte("launch=true"), 0666)).To(Succeed())
 		})
 
 		it("moves the layers to deps dir and metadata to build dir", func() {
 			Expect(finalizer.MoveV3Layers()).To(Succeed())
 			Expect(filepath.Join(v2AppDir, ".cloudfoundry", "metadata.toml")).To(BeAnExistingFile())
 			Expect(filepath.Join(v2DepsDir, "layers")).To(BeAnExistingFile())
-			Expect(filepath.Join(v2DepsDir, "anotherLayers")).To(BeAnExistingFile())
+
+			Expect(filepath.Join(v2DepsDir, "anotherLayers", "innerLayer")).ToNot(BeAnExistingFile())
+
+			Expect(filepath.Join(v2DepsDir, "anothernotherLayers")).To(BeAnExistingFile())
+			Expect(filepath.Join(v2DepsDir, "anothernotherLayers", "innerLayer.toml")).To(BeAnExistingFile())
+			Expect(filepath.Join(v2DepsDir, "anothernotherLayers", "innerLayer")).To(BeADirectory())
 
 			Expect(v3LayersDir).NotTo(BeAnExistingFile())
 		})
@@ -339,7 +347,9 @@ version = "4.5.6"
 		it("copies cacheable layers to the cache/cnb directory", func() {
 			Expect(filepath.Join(v2CacheDir, "cnb")).ToNot(BeADirectory())
 			Expect(finalizer.MoveV3Layers()).To(Succeed())
+
 			Expect(filepath.Join(v2CacheDir, "cnb", "anotherLayers", "innerLayer")).To(BeADirectory())
+			Expect(filepath.Join(v2CacheDir, "cnb", "anothernotherLayers", "innerLayer")).NotTo(BeAnExistingFile())
 		})
 	})
 
