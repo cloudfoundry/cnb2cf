@@ -29,6 +29,7 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 		err           error
 		fakeInstaller *fakes.DepInstaller
 		manifest      *libbuildpack.Manifest
+		logger        *libbuildpack.Logger
 	)
 
 	it.Before(func() {
@@ -41,7 +42,7 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 
 		buffer = new(bytes.Buffer)
 
-		logger := libbuildpack.NewLogger(ansicleaner.New(buffer))
+		logger = libbuildpack.NewLogger(ansicleaner.New(buffer))
 
 		var err error
 		manifest, err = libbuildpack.NewManifest(filepath.Join("testdata", "buildpack"), logger, time.Now())
@@ -156,27 +157,61 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	when("InstallLifecycle", func() {
-		it.Before(func() {
-			// create a manifest, and a real installer
+		when("lifecyle version < 0.7.x", func() {
+			it.Before(func() {
+				// create a manifest, and a real installer
 
-			realInstaller := libbuildpack.NewInstaller(manifest)
-			Expect(err).To(BeNil())
-			installer = shims.NewCNBInstaller(manifest, realInstaller)
+				realInstaller := libbuildpack.NewInstaller(manifest)
+				Expect(err).To(BeNil())
+				installer = shims.NewCNBInstaller(manifest, realInstaller)
 
-			contents, err := ioutil.ReadFile(filepath.Join("testdata", "buildpack", "lifecycle-bundle.tgz"))
-			Expect(err).ToNot(HaveOccurred())
+				contents, err := ioutil.ReadFile(filepath.Join("testdata", "buildpack", "lifecycle-bundle.tgz"))
+				Expect(err).ToNot(HaveOccurred())
 
-			httpmock.RegisterResponder("GET", "https://a-fake-url.com/lifecycle-bundle.tgz",
-				httpmock.NewStringResponder(200, string(contents)))
+				httpmock.RegisterResponder("GET", "https://a-fake-url.com/lifecycle-bundle.tgz",
+					httpmock.NewStringResponder(200, string(contents)))
+			})
+
+			it("unpacks the lifecycle bundle and globs the contents of the subfolder and copies it somewhere", func() {
+				Expect(installer.InstallLifecycle(tmpDir)).To(Succeed())
+				keepBinaries := []string{"detector", "builder", "launcher"}
+
+				for _, binary := range keepBinaries {
+					Expect(filepath.Join(tmpDir, binary)).To(BeAnExistingFile())
+				}
+			})
 		})
 
-		it("unpacks the lifecycle bundle and globs the contents of the subfolder and copies it somewhere", func() {
-			Expect(installer.InstallLifecycle(tmpDir)).To(Succeed())
-			keepBinaries := []string{"detector", "builder", "launcher"}
+		when("lifecyle version >= 0.7.x", func() {
+			// From lifecycle 0.7.x, they made a new executable named "lifecycle" and files
+			// like detector, builder etc. are symlinks to this lifecycle executable
+			it.Before(func() {
+				// create a manifest, and a real installer
+				manifest, err := libbuildpack.NewManifest(filepath.Join("testdata", "buildpack_lifecycle_v7"), logger, time.Now())
+				Expect(err).To(BeNil())
 
-			for _, binary := range keepBinaries {
-				Expect(filepath.Join(tmpDir, binary)).To(BeAnExistingFile())
-			}
+				fakeInstaller = &fakes.DepInstaller{}
+				installer = shims.NewCNBInstaller(manifest, fakeInstaller)
+
+				realInstaller := libbuildpack.NewInstaller(manifest)
+				Expect(err).To(BeNil())
+				installer = shims.NewCNBInstaller(manifest, realInstaller)
+
+				contents, err := ioutil.ReadFile(filepath.Join("testdata", "buildpack_lifecycle_v7", "lifecycle-bundle.tgz"))
+				Expect(err).ToNot(HaveOccurred())
+
+				httpmock.RegisterResponder("GET", "https://a-fake-url.com/lifecycle-bundle-v0.7.2.tgz",
+					httpmock.NewStringResponder(200, string(contents)))
+			})
+
+			it("unpacks the lifecycle bundle and globs the contents of the subfolder and copies it somewhere", func() {
+				Expect(installer.InstallLifecycle(tmpDir)).To(Succeed())
+				keepBinaries := []string{"detector", "builder", "launcher", "lifecycle"}
+
+				for _, binary := range keepBinaries {
+					Expect(filepath.Join(tmpDir, binary)).To(BeAnExistingFile())
+				}
+			})
 		})
 	})
 }

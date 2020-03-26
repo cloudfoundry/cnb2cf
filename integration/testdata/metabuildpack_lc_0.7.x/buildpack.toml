@@ -1,0 +1,65 @@
+api = "0.2"
+
+[buildpack]
+  id = "org.cloudfoundry.nodejs"
+  name = "Node.js Buildpack"
+  version = "1.0.0"
+
+[metadata]
+  include_files = ["buildpack.toml"]
+
+  [[metadata.dependencies]]
+    id = "lifecycle"
+    sha256 = "5abc450423b9a13cf3e8f83623d30cd61081af293e85044a8d6d88e29548cc66"
+    source = "https://github.com/buildpacks/lifecycle/releases/download/v0.7.2/lifecycle-v0.7.2%2Blinux.x86-64.tgz"
+    source_sha256 = "5abc450423b9a13cf3e8f83623d30cd61081af293e85044a8d6d88e29548cc66"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://buildpacks.cloudfoundry.org/dependencies/lifecycle/lifecycle-0.7.2-any-stack-5abc4504.tgz"
+    version = "0.7.2"
+
+  [[metadata.dependencies]]
+    id = "org.cloudfoundry.node-engine"
+    sha256 = "630e85979cec22e3e4662aa996ece2e7cbe704d1cc8eddcc6cf3209efa590336"
+    source = "https://github.com/cloudfoundry/node-engine-cnb/archive/v0.0.169.tar.gz"
+    source_sha256 = "b7e3fdbb73b6fd3ccd2fdf05249206d2870b85b3b9ae4d6274d203f01afab8bc"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://buildpacks.cloudfoundry.org/dependencies/org.cloudfoundry.node-engine/org.cloudfoundry.node-engine-0.0.169-any-stack-630e8597.tgz"
+    version = "0.0.169"
+
+  [[metadata.dependencies]]
+    id = "org.cloudfoundry.npm"
+    sha256 = "63b86a391f05beaf24b56cb399a1f09bc2f9beb924745668058fd84701ddacb9"
+    source = "https://github.com/cloudfoundry/npm-cnb/archive/v0.1.4.tar.gz"
+    source_sha256 = "8141b99715610cd86f65f4434ef68e63ad147a6d8b6119a1ad01672c1b1b824e"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://buildpacks.cloudfoundry.org/dependencies/org.cloudfoundry.npm/org.cloudfoundry.npm-0.1.4-any-stack-63b86a39.tgz"
+    version = "0.1.4"
+
+  [[metadata.dependencies]]
+    id = "org.cloudfoundry.yarn-install"
+    sha256 = "659cfe5841157e59d68d5a2ac1426fce1ea2e0eecf7a9dd2a07c2c69a54ae64c"
+    source = "https://github.com/cloudfoundry/yarn-install-cnb/archive/v0.1.11.tar.gz"
+    source_sha256 = "f617acd9fb28af20399107a2ddce5e8fb26737a38e32409a3bfdd6c3e054cd23"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://buildpacks.cloudfoundry.org/dependencies/org.cloudfoundry.yarn-install/org.cloudfoundry.yarn-install-0.1.11-any-stack-659cfe58.tgz"
+    version = "0.1.11"
+
+[[order]]
+
+  [[order.group]]
+    id = "org.cloudfoundry.node-engine"
+    version = "0.0.169"
+
+  [[order.group]]
+    id = "org.cloudfoundry.yarn-install"
+    version = "0.1.11"
+
+[[order]]
+
+  [[order.group]]
+    id = "org.cloudfoundry.node-engine"
+    version = "0.0.169"
+
+  [[order.group]]
+    id = "org.cloudfoundry.npm"
+    version = "0.1.4"

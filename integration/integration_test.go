@@ -173,5 +173,75 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 				Expect(app.GetBody("/")).To(Equal("Hello World!"))
 			})
 		})
+
+		when("lifecycle 0.7.x", func() {
+			it.Before(func() {
+				bpDir, err := filepath.Abs(filepath.Join("testdata", "metabuildpack_lc_0.7.x"))
+				Expect(err).NotTo(HaveOccurred())
+
+				original, err := os.Open(filepath.Join(bpDir, "buildpack.toml"))
+				Expect(err).NotTo(HaveOccurred())
+				defer original.Close()
+
+				duplicate, err := os.Create(filepath.Join(testDir, "buildpack.toml"))
+				Expect(err).NotTo(HaveOccurred())
+				defer duplicate.Close()
+
+				_, err = io.Copy(duplicate, original)
+				Expect(err).NotTo(HaveOccurred())
+
+				bpDir = testDir
+			})
+
+			it("creates a runnable online v2 shimmed buildpack", func() {
+				output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3", "-version", "1.0.0")
+				Expect(err).NotTo(HaveOccurred(), string(output))
+
+				shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cflinuxfs3-v1.0.0.zip")
+
+				desiredBPFiles := []string{
+					"buildpack.toml",
+					"manifest.yml",
+					"VERSION",
+					"bin/compile",
+					"bin/detect",
+					"bin/finalize",
+					"bin/release",
+					"bin/supply",
+				}
+
+				presentBPFiles, err := utils.GetFilesFromZip(shimmedBPFile)
+				Expect(err).ToNot(HaveOccurred())
+				for _, file := range desiredBPFiles {
+					Expect(presentBPFiles).To(ContainElement(file))
+				}
+
+				fileContents, err := utils.GetFileContentsFromZip(shimmedBPFile, "manifest.yml")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(fileContents)).To(ContainSubstring("lifecycle"))
+
+				Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
+
+				Expect(app.Push()).To(Succeed())
+				Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
+				Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`Node Engine Buildpack`))
+				Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`NPM Buildpack`))
+				Expect(app.GetBody("/")).To(Equal("Hello World!"))
+			})
+
+			it("creates a runnable offline v2 shimmed buildpack", func() {
+				output, err := runCNB2CF(bpDir, "package", "-stack", "cflinuxfs3", "-cached", "-version", "1.0.0")
+				Expect(err).NotTo(HaveOccurred(), string(output))
+				app.Buildpacks = []string{bpName + "_buildpack"}
+				shimmedBPFile = filepath.Join(bpDir, "nodejs_buildpack-cached-cflinuxfs3-v1.0.0.zip")
+				Expect(cutlass.CreateOrUpdateBuildpack(bpName, shimmedBPFile, "cflinuxfs3")).To(Succeed())
+
+				Expect(app.Push()).To(Succeed())
+				Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
+				Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`Node Engine Buildpack`))
+				Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`NPM Buildpack`))
+				Expect(app.GetBody("/")).To(Equal("Hello World!"))
+			})
+		})
 	})
 }

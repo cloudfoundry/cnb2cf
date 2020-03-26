@@ -1,0 +1,38 @@
+---
+language: SomeName
+dependencies:
+  - name: this.is.a.fake.bpA
+    version: 1.0.1
+    uri: https://a-fake-url.com/bpA.tgz
+    sha256: fe3dafab56a125b4802a3eba4993edb774a4594d22a90656e778467be828221d
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: this.is.a.fake.bpB
+    version: 1.0.2
+    uri: https://a-fake-url.com/bpB.tgz
+    sha256: c42d7ac92ebf4eac900a3b65ea6637104b97b53361fa00c226af7ef1486a27c8
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: this.is.a.fake.bpC
+    version: 1.0.2
+    uri: https://a-fake-url.com/bpC.tgz
+    sha256: 8668893f50179fc340a24b2ab131ed655fc61326b3e98c1c9eaf6def29c5e110
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: lifecycle
+    version: 0.7.2
+    uri: https://a-fake-url.com/lifecycle-bundle-v0.7.2.tgz
+    sha256: 05ffeef3cd2c4ccb8c1d6ee154550ccac8f4bf8d64c5cdf62bf971830c89895e
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3
+  - name: org.cloudfoundry.buildpack
+    version: 1.0.0
+    uri: https://a-fake-url.com/bp.tgz
+    sha256: 661b73a8eea11c475299847238b682986bfd508a5590d3105ee19f7342b6c1ea
+    cf_stacks:
+      - cflinuxfs2
+      - cflinuxfs3

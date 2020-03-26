@@ -20,16 +20,17 @@ import (
 const fakeCNBVersion = "0.0.1"
 
 var (
-	V3LifecycleDep   = "lifecycle"
-	V3Detector       = "detector"
-	V3Builder        = "builder"
-	V3Launcher       = "launcher"
-	V3LaunchScript   = "0_shim.sh"
-	V3AppDir         = filepath.Join(string(filepath.Separator), "home", "vcap", "app")
-	V3LayersDir      = filepath.Join(string(filepath.Separator), "home", "vcap", "deps")
-	V3MetadataDir    = filepath.Join(string(filepath.Separator), "home", "vcap", "metadata")
-	V3StoredOrderDir = filepath.Join(string(filepath.Separator), "home", "vcap", "order")
-	V3BuildpacksDir  = filepath.Join(string(filepath.Separator), "home", "vcap", "cnbs")
+	V3LifecycleDep    = "lifecycle"
+	V3Detector        = "detector"
+	V3Builder         = "builder"
+	V3Launcher        = "launcher"
+	V3LifecycleBinary = "lifecycle"
+	V3LaunchScript    = "0_shim.sh"
+	V3AppDir          = filepath.Join(string(filepath.Separator), "home", "vcap", "app")
+	V3LayersDir       = filepath.Join(string(filepath.Separator), "home", "vcap", "deps")
+	V3MetadataDir     = filepath.Join(string(filepath.Separator), "home", "vcap", "metadata")
+	V3StoredOrderDir  = filepath.Join(string(filepath.Separator), "home", "vcap", "order")
+	V3BuildpacksDir   = filepath.Join(string(filepath.Separator), "home", "vcap", "cnbs")
 )
 
 type LifecycleDetectRunner interface {

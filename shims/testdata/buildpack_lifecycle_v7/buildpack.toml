@@ -1,0 +1,22 @@
+api = "0.2"
+
+[buildpack]
+id = "org.cloudfoundry.buildpack"
+name = "Buildpack"
+version = "1.0.0"
+
+[metadata]
+include_files = ["buildpack.toml"]
+
+[[order]]
+[[order.group]]
+id = "this.is.a.fake.bpA"
+version = "latest"
+
+[[order.group]]
+id = "this.is.a.fake.bpB"
+version = "latest"
+
+[[order.group]]
+id = "this.is.a.fake.bpC"
+version = "latest"
