@@ -113,8 +113,6 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(app.Push()).To(Succeed())
 			Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
-			Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`Node Engine Buildpack`))
-			Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`NPM Buildpack`))
 			Expect(app.GetBody("/")).To(Equal("Hello World!"))
 		})
 
@@ -127,8 +125,6 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(app.Push()).To(Succeed())
 			Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
-			Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`Node Engine Buildpack`))
-			Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`NPM Buildpack`))
 			Expect(app.GetBody("/")).To(Equal("Hello World!"))
 		})
 
@@ -174,11 +170,8 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 				Expect(app.Push()).To(Succeed())
 				Eventually(func() ([]string, error) { return app.InstanceStates() }, 20*time.Second).Should(Equal([]string{"RUNNING"}))
-				Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`Node Engine Buildpack`))
-				Eventually(app.Stdout.ANSIStrippedString).Should(ContainSubstring(`NPM Buildpack`))
 				Expect(app.GetBody("/")).To(Equal("Hello World!"))
 			})
 		})
 	})
-
 }
