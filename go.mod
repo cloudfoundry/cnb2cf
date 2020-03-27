@@ -15,7 +15,7 @@ require (
 	github.com/google/subcommands v1.0.1
 	github.com/jarcoal/httpmock v1.0.4
 	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.8.1
+	github.com/onsi/gomega v1.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/sclevine/spec v1.4.0
