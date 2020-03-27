@@ -10,7 +10,7 @@ require (
 	github.com/cloudfoundry/packit v0.0.0-20200129211718-a2b2b4f67a52
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
-	github.com/golang/mock v1.4.0
+	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/subcommands v1.0.1
 	github.com/jarcoal/httpmock v1.0.4
