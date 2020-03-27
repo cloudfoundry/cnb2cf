@@ -13,7 +13,7 @@ require (
 	github.com/golang/mock v1.4.0
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/subcommands v1.0.1
-	github.com/jarcoal/httpmock v1.0.4
+	github.com/jarcoal/httpmock v1.0.5
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.9.1
