@@ -35,6 +35,7 @@ func finalize(logger *libbuildpack.Logger) error {
 
 	defer os.RemoveAll(shims.V3StoredOrderDir)
 	defer os.RemoveAll(shims.V3BuildpacksDir)
+	defer os.RemoveAll(shims.V3PlatformDir)
 	defer os.RemoveAll(shims.V3MetadataDir)
 
 	tempDir, err := ioutil.TempDir("", "temp")
@@ -44,6 +45,10 @@ func finalize(logger *libbuildpack.Logger) error {
 	defer os.RemoveAll(tempDir)
 
 	if err := os.MkdirAll(shims.V3MetadataDir, 0777); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Join(shims.V3PlatformDir, "env"), os.ModePerm); err != nil {
 		return err
 	}
 
@@ -76,6 +81,7 @@ func finalize(logger *libbuildpack.Logger) error {
 		V2CacheDir:      v2CacheDir,
 		V3LayersDir:     shims.V3LayersDir,
 		V3BuildpacksDir: shims.V3BuildpacksDir,
+		V3PlatformDir:   shims.V3PlatformDir,
 		DepsIndex:       v2DepsIndex,
 		OrderDir:        shims.V3StoredOrderDir,
 		OrderMetadata:   filepath.Join(shims.V3MetadataDir, "order.toml"),
@@ -88,6 +94,7 @@ func finalize(logger *libbuildpack.Logger) error {
 			AppDir:          shims.V3AppDir,
 			V3LifecycleDir:  tempDir,
 			V3BuildpacksDir: shims.V3BuildpacksDir,
+			V3PlatformDir:   shims.V3PlatformDir,
 			OrderMetadata:   filepath.Join(shims.V3MetadataDir, "order.toml"),
 			GroupMetadata:   filepath.Join(shims.V3MetadataDir, "group.toml"),
 			PlanMetadata:    filepath.Join(shims.V3MetadataDir, "plan.toml"),

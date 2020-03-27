@@ -24,6 +24,7 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 		environment     *fakes.Environment
 		fakeExecutable  *fakes.Executable
 		v3BuildpacksDir string
+		V3PlatformDir   string
 		v3AppDir        string
 		tempDir         string
 		v3LifecycleDir  string
@@ -49,6 +50,7 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 		planMetadata = filepath.Join(tempDir, "metadata", "plan.toml")
 
 		v3BuildpacksDir = filepath.Join(tempDir, "buildpacks")
+		V3PlatformDir = filepath.Join(tempDir, "platform")
 
 		installer = &fakes.Installer{}
 		installer.InstallLifecycleCall.Stub = func(path string) error {
@@ -65,6 +67,7 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 		detector = shims.Detector{
 			AppDir:          v3AppDir,
 			V3BuildpacksDir: v3BuildpacksDir,
+			V3PlatformDir:   V3PlatformDir,
 			V3LifecycleDir:  v3LifecycleDir,
 			OrderMetadata:   orderMetadata,
 			GroupMetadata:   groupMetadata,
@@ -95,10 +98,22 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 			"-order", orderMetadata,
 			"-group", groupMetadata,
 			"-plan", planMetadata,
+			"-platform", V3PlatformDir,
 		}))
 		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))
 		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
 		Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+
+		Expect(filepath.Join(V3PlatformDir, "env")).To(BeADirectory())
+		Expect(filepath.Join(V3PlatformDir, "env", "CNB_SERVICES")).To(BeAnExistingFile())
+		Expect(filepath.Join(V3PlatformDir, "env", "CNB_STACK_ID")).To(BeAnExistingFile())
+
+		contents, err := ioutil.ReadFile(filepath.Join(V3PlatformDir, "env", "CNB_SERVICES"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(contents).To(ContainSubstring(`{"some-key": "some-val"}`))
+		contents, err = ioutil.ReadFile(filepath.Join(V3PlatformDir, "env", "CNB_STACK_ID"))
+		Expect(err).ToNot(HaveOccurred())
+		Expect(contents).To(ContainSubstring("org.cloudfoundry.stacks.some-stack"))
 	})
 
 	when("the LOG_LEVEL environment variable is set", func() {
@@ -126,6 +141,7 @@ func testDetector(t *testing.T, when spec.G, it spec.S) {
 				"-order", orderMetadata,
 				"-group", groupMetadata,
 				"-plan", planMetadata,
+				"-platform", V3PlatformDir,
 				"-log-level", logLevel,
 			}))
 			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))

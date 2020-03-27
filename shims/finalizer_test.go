@@ -39,6 +39,7 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 		v3LayersDir,
 		v3LauncherDir,
 		v3BuildpacksDir,
+		V3PlatformDir,
 		orderDir,
 		orderMetadata,
 		planMetadata,
@@ -82,6 +83,9 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 		v3BuildpacksDir = filepath.Join(tempDir, "cnbs")
 		Expect(os.MkdirAll(v3BuildpacksDir, 0777)).To(Succeed())
 
+		V3PlatformDir = filepath.Join(tempDir, "platform")
+		Expect(os.MkdirAll(V3PlatformDir, 0777)).To(Succeed())
+
 		orderDir = filepath.Join(tempDir, "order")
 		Expect(os.MkdirAll(orderDir, 0777)).To(Succeed())
 
@@ -110,6 +114,7 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 			V3LayersDir:     v3LayersDir,
 			V3LauncherDir:   v3LauncherDir,
 			V3BuildpacksDir: v3BuildpacksDir,
+			V3PlatformDir:   V3PlatformDir,
 			DepsIndex:       depsIndex,
 			OrderDir:        orderDir,
 			OrderMetadata:   orderMetadata,
@@ -145,11 +150,23 @@ func testFinalizer(t *testing.T, when spec.G, it spec.S) {
 				"-group", groupMetadata,
 				"-layers", v3LayersDir,
 				"-plan", planMetadata,
+				"-platform", V3PlatformDir,
 			}))
 			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stdout).To(Equal(os.Stdout))
 			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Stderr).To(Equal(os.Stderr))
 			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement(`CNB_SERVICES={"some-key": "some-val"}`))
 			Expect(fakeExecutable.ExecuteCall.Receives.Execution.Env).To(ContainElement("CNB_STACK_ID=org.cloudfoundry.stacks.some-stack"))
+
+			Expect(filepath.Join(V3PlatformDir, "env")).To(BeADirectory())
+			Expect(filepath.Join(V3PlatformDir, "env", "CNB_SERVICES")).To(BeAnExistingFile())
+			Expect(filepath.Join(V3PlatformDir, "env", "CNB_STACK_ID")).To(BeAnExistingFile())
+
+			contents, err := ioutil.ReadFile(filepath.Join(V3PlatformDir, "env", "CNB_SERVICES"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(ContainSubstring(`{"some-key": "some-val"}`))
+			contents, err = ioutil.ReadFile(filepath.Join(V3PlatformDir, "env", "CNB_STACK_ID"))
+			Expect(err).ToNot(HaveOccurred())
+			Expect(contents).To(ContainSubstring("org.cloudfoundry.stacks.some-stack"))
 		})
 
 		when("the lifecycle build binary fails", func() {

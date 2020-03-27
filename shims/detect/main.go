@@ -40,6 +40,10 @@ func detect(logger *libbuildpack.Logger) error {
 		return err
 	}
 
+	if err := os.MkdirAll(filepath.Join(shims.V3PlatformDir, "env"), os.ModePerm); err != nil {
+		return err
+	}
+
 	if err := os.MkdirAll(shims.V3MetadataDir, 0777); err != nil {
 		return err
 	}
@@ -61,6 +65,7 @@ func detect(logger *libbuildpack.Logger) error {
 		V3LifecycleDir:  tempDir,
 		AppDir:          v2AppDir,
 		V3BuildpacksDir: shims.V3BuildpacksDir,
+		V3PlatformDir:   shims.V3PlatformDir,
 		OrderMetadata:   filepath.Join(v2BuildpackDir, "buildpack.toml"),
 		GroupMetadata:   filepath.Join(shims.V3MetadataDir, "group.toml"),
 		PlanMetadata:    filepath.Join(shims.V3MetadataDir, "plan.toml"),

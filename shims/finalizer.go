@@ -31,6 +31,7 @@ var (
 	V3MetadataDir     = filepath.Join(string(filepath.Separator), "home", "vcap", "metadata")
 	V3StoredOrderDir  = filepath.Join(string(filepath.Separator), "home", "vcap", "order")
 	V3BuildpacksDir   = filepath.Join(string(filepath.Separator), "home", "vcap", "cnbs")
+	V3PlatformDir     = filepath.Join(string(filepath.Separator), "home", "vcap", "platform")
 )
 
 type LifecycleDetectRunner interface {
@@ -50,6 +51,7 @@ type Finalizer struct {
 	V2CacheDir      string
 	V3LayersDir     string
 	V3BuildpacksDir string
+	V3PlatformDir   string
 	DepsIndex       string
 	OrderDir        string
 	OrderMetadata   string
@@ -249,7 +251,12 @@ func (f *Finalizer) RunLifecycleBuild() error {
 	services := f.Environment.Services()
 	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", services))
 
-	_, _, err := f.Executable.Execute(pexec.Execution{
+	err := writePlatformDir(f.V3PlatformDir, env)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = f.Executable.Execute(pexec.Execution{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 		Env:    env,
@@ -259,6 +266,7 @@ func (f *Finalizer) RunLifecycleBuild() error {
 			"-group", f.GroupMetadata,
 			"-layers", f.V3LayersDir,
 			"-plan", f.PlanMetadata,
+			"-platform", f.V3PlatformDir,
 		},
 	})
 	if err != nil {

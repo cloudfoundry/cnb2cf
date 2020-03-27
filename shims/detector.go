@@ -31,6 +31,7 @@ type Detector struct {
 	AppDir string
 
 	V3BuildpacksDir string
+	V3PlatformDir   string
 
 	OrderMetadata string
 	GroupMetadata string
@@ -62,6 +63,11 @@ func (d Detector) RunLifecycleDetect() error {
 	stack := d.Environment.Stack()
 	env = append(env, fmt.Sprintf("CNB_STACK_ID=org.cloudfoundry.stacks.%s", stack))
 
+	err := writePlatformDir(d.V3PlatformDir, env)
+	if err != nil {
+		return err
+	}
+
 	logLevel := os.Getenv("LOG_LEVEL")
 
 	args := []string{
@@ -70,11 +76,12 @@ func (d Detector) RunLifecycleDetect() error {
 		"-order", d.OrderMetadata,
 		"-group", d.GroupMetadata,
 		"-plan", d.PlanMetadata,
+		"-platform", d.V3PlatformDir,
 	}
 	if logLevel != "" {
 		args = append(args, "-log-level", logLevel)
 	}
-	_, _, err := d.Executor.Execute(pexec.Execution{
+	_, _, err = d.Executor.Execute(pexec.Execution{
 		Args:   args,
 		Stdout: os.Stderr,
 		Stderr: os.Stderr,

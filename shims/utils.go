@@ -1,10 +1,12 @@
 package shims
 
 import (
-	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/cloudfoundry/cnb2cf/cloudnative"
 
 	"github.com/BurntSushi/toml"
 	"github.com/buildpack/libbuildpack/buildpack"
@@ -57,4 +59,23 @@ func encodeTOML(dest string, data interface{}) error {
 	defer destFile.Close()
 
 	return toml.NewEncoder(destFile).Encode(data)
+}
+
+func writePlatformDir(platformDir string, envs []string) error {
+	envDir := filepath.Join(platformDir, "env")
+	err := os.MkdirAll(envDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	for _, en := range envs {
+		pair := strings.Split(en, "=")
+		key := pair[0]
+		val := pair[1]
+		err = ioutil.WriteFile(filepath.Join(envDir, key), []byte(val), os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
