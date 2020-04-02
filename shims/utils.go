@@ -1,6 +1,7 @@
 package shims
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,7 +14,6 @@ import (
 )
 
 // need to add optional stuff here
-
 
 type Order struct {
 	Groups []cloudnative.BuildpackOrderGroup `toml:"group"`
@@ -61,20 +61,23 @@ func encodeTOML(dest string, data interface{}) error {
 	return toml.NewEncoder(destFile).Encode(data)
 }
 
-func writePlatformDir(platformDir string, envs []string) error {
+func WritePlatformDir(platformDir string, envs []string) error {
 	envDir := filepath.Join(platformDir, "env")
 	err := os.MkdirAll(envDir, os.ModePerm)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to make env dir: %s", err)
 	}
 
 	for _, en := range envs {
-		pair := strings.Split(en, "=")
+		pair := strings.SplitN(en, "=", 2)
+		if len(pair) != 2 {
+			return fmt.Errorf("var fails to contain required key=value structure")
+		}
 		key := pair[0]
 		val := pair[1]
 		err = ioutil.WriteFile(filepath.Join(envDir, key), []byte(val), os.ModePerm)
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to write %s env file: %s", key, err)
 		}
 	}
 	return nil

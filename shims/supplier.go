@@ -60,11 +60,11 @@ func (s *Supplier) SetUpFirstV3Buildpack() error {
 	}
 
 	if err := moveContent(s.V2AppDir, s.V3AppDir); err != nil {
-		return err
+		return fmt.Errorf("failed to move app contents to v3 location %s", err)
 	}
 
 	if err := os.Symlink(ERROR_FILE, s.V2AppDir); err != nil {
-		return err
+		return fmt.Errorf("failed to setup error-symlink file: %s", err)
 	}
 
 	appCFPath := filepath.Join(s.V3AppDir, ".cloudfoundry")
@@ -73,7 +73,7 @@ func (s *Supplier) SetUpFirstV3Buildpack() error {
 	}
 
 	if _, err := os.OpenFile(filepath.Join(appCFPath, libbuildpack.SENTINEL), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
-		return err
+		return fmt.Errorf("failed to create SENTINEL file: %s", err)
 	}
 
 	return nil

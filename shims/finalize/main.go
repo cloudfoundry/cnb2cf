@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/shims"
 	"github.com/cloudfoundry/libbuildpack"
@@ -48,7 +47,7 @@ func finalize(logger *libbuildpack.Logger) error {
 		return err
 	}
 
-	if err := os.MkdirAll(filepath.Join(shims.V3PlatformDir, "env"), os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Join(shims.V3PlatformDir, "env"), 0777); err != nil {
 		return err
 	}
 
@@ -69,10 +68,10 @@ func finalize(logger *libbuildpack.Logger) error {
 	installer := shims.NewCNBInstaller(manifest, libbuildpack.NewInstaller(manifest))
 
 	detectExecPath := filepath.Join(tempDir, shims.V3Detector)
-	detectExecutable := pexec.NewExecutable(detectExecPath, lager.NewLogger("detect"))
+	detectExecutable := pexec.NewExecutable(detectExecPath)
 
 	finalizeExecPath := filepath.Join(tempDir, shims.V3Builder)
-	finalizeExecutable := pexec.NewExecutable(finalizeExecPath, lager.NewLogger("finalize"))
+	finalizeExecutable := pexec.NewExecutable(finalizeExecPath)
 
 	finalizer := shims.Finalizer{
 		V2AppDir:        v2AppDir,

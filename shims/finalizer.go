@@ -251,12 +251,12 @@ func (f *Finalizer) RunLifecycleBuild() error {
 	services := f.Environment.Services()
 	env = append(env, fmt.Sprintf("CNB_SERVICES=%s", services))
 
-	err := writePlatformDir(f.V3PlatformDir, env)
+	err := WritePlatformDir(f.V3PlatformDir, env)
 	if err != nil {
 		return err
 	}
 
-	_, _, err = f.Executable.Execute(pexec.Execution{
+	err = f.Executable.Execute(pexec.Execution{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 		Env:    env,

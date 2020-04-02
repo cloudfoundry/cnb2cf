@@ -22,7 +22,7 @@ type Installer interface {
 
 //go:generate faux --interface Executable --output fakes/executable.go
 type Executable interface {
-	Execute(pexec.Execution) (stdout, stderr string, err error)
+	Execute(pexec.Execution) (err error)
 }
 
 type Detector struct {
@@ -63,7 +63,7 @@ func (d Detector) RunLifecycleDetect() error {
 	stack := d.Environment.Stack()
 	env = append(env, fmt.Sprintf("CNB_STACK_ID=org.cloudfoundry.stacks.%s", stack))
 
-	err := writePlatformDir(d.V3PlatformDir, env)
+	err := WritePlatformDir(d.V3PlatformDir, env)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,8 @@ func (d Detector) RunLifecycleDetect() error {
 	if logLevel != "" {
 		args = append(args, "-log-level", logLevel)
 	}
-	_, _, err = d.Executor.Execute(pexec.Execution{
+
+	err = d.Executor.Execute(pexec.Execution{
 		Args:   args,
 		Stdout: os.Stderr,
 		Stderr: os.Stderr,

@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/libbuildpack"
 	"github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager"
@@ -75,7 +74,7 @@ func BuildCNB(extractDir, outputDir string, cached bool, version string) (string
 	} else {
 		// RUN jam pack
 		logger := scribe.NewLogger(os.Stdout)
-		bash := pexec.NewExecutable("bash", lager.NewLogger("pre-packager"))
+		bash := pexec.NewExecutable("bash")
 
 		transport := cargo.NewTransport()
 		directoryDuplicator := cargo.NewDirectoryDuplicator()
