@@ -20,3 +20,7 @@ version = "latest"
 [[order.group]]
 id = "this.is.a.fake.bpC"
 version = "latest"
+
+[[order.group]]
+id = "this.paketo-buildpacks/bpD"
+version = "latest"

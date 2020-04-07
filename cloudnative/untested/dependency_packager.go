@@ -8,6 +8,7 @@ import (
 
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
 	"github.com/cloudfoundry/cnb2cf/packager"
+	"github.com/cloudfoundry/cnb2cf/shims"
 )
 
 //go:generate faux -i Installer -o fakes/installer.go
@@ -49,7 +50,8 @@ func (dp DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDep
 
 	var tarFile string
 	if dependency.ID == cloudnative.Lifecycle {
-		tarFile = filepath.Join(buildDir, dependency.ID+".tgz")
+		tarFileName := shims.SanitizeId(dependency.ID) + ".tgz"
+		tarFile = filepath.Join(buildDir, tarFileName)
 		err := dp.installer.Download(dependency.URI, dependency.SHA256, tarFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to download cnb source for %s: %s", dependency.ID, err)
@@ -68,7 +70,8 @@ func (dp DependencyPackager) Package(dependency cloudnative.BuildpackMetadataDep
 			return nil, fmt.Errorf("failed to extract cnb source for %s: %s", dependency.ID, err)
 		}
 
-		tarballPath, sha256, err := packager.BuildCNB(downloadDir, filepath.Join(buildDir, dependency.ID), dp.cached, dependency.Version)
+		tarFileName := shims.SanitizeId(dependency.ID)
+		tarballPath, sha256, err := packager.BuildCNB(downloadDir, filepath.Join(buildDir, tarFileName), dp.cached, dependency.Version)
 		if err != nil {
 			panic(err)
 		}

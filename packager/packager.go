@@ -44,10 +44,14 @@ func ExtractCNBSource(dep cloudnative.BuildpackMetadataDependency, src, dstDir s
 func BuildCNB(extractDir, outputDir string, cached bool, version string) (string, string, error) {
 	foundSrc, err := FindCNB(extractDir)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("unable to find CNB: %s", err)
 	}
 
 	path := fmt.Sprintf("%s.tgz", outputDir)
+	_, err = os.Stat(filepath.Dir(path))
+	if err != nil {
+		return "", "", fmt.Errorf("invalid outputDir (%s): %s", outputDir, err)
+	}
 
 	_, err = os.Stat(filepath.Join(foundSrc, ".packit"))
 	if err != nil {

@@ -36,7 +36,7 @@ api = "0.2"
     version = "0.1.4"
 
   [[metadata.dependencies]]
-    id = "org.cloudfoundry.yarn-install"
+    id = "paketo-buildpacks/yarn-install"
     sha256 = "659cfe5841157e59d68d5a2ac1426fce1ea2e0eecf7a9dd2a07c2c69a54ae64c"
     source = "https://github.com/cloudfoundry/yarn-install-cnb/archive/v0.1.11.tar.gz"
     source_sha256 = "f617acd9fb28af20399107a2ddce5e8fb26737a38e32409a3bfdd6c3e054cd23"
@@ -51,7 +51,7 @@ api = "0.2"
     version = "0.0.169"
 
   [[order.group]]
-    id = "org.cloudfoundry.yarn-install"
+    id = "paketo-buildpacks/yarn-install"
     version = "0.1.11"
 
 [[order]]

@@ -79,10 +79,10 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 				Expect(err).NotTo(HaveOccurred())
 
 				// ordering can change due to map function
-				Expect(installedDeps).To(ConsistOf("this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.is.a.fake.bpC"))
-				Expect(len(installedDeps)).To(Equal(3))
+				Expect(len(installedDeps)).To(Equal(4))
+				Expect(installedDeps).To(ConsistOf("this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.is.a.fake.bpC", "this.paketo-buildpacks/bpD"))
 
-				correctNames := []string{"this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.is.a.fake.bpC"}
+				correctNames := []string{"this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.is.a.fake.bpC", "this.paketo-buildpacks_bpD"}
 				Expect(len(paths)).To(Equal(len(correctNames)))
 
 				// Sort array that was once map keys, as it is unordered
@@ -98,11 +98,11 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 				Expect(err).NotTo(HaveOccurred())
 
 				// ordering can change due to map function
-				Expect(installedDeps).To(ConsistOf("this.is.a.fake.bpA", "this.is.a.fake.bpB"))
-				Expect(len(installedDeps)).To(Equal(2))
+				Expect(len(installedDeps)).To(Equal(3))
+				Expect(installedDeps).To(ConsistOf("this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.paketo-buildpacks/bpD"))
 
-				correctNames := []string{"this.is.a.fake.bpA", "this.is.a.fake.bpB"}
-				Expect(len(paths)).To(Equal(len(correctNames)))
+				Expect(len(paths)).To(Equal(3))
+				correctNames := []string{"this.is.a.fake.bpA", "this.is.a.fake.bpB", "this.paketo-buildpacks_bpD"}
 
 				// Sort array that was once map keys, as it is unordered
 				sort.Strings(paths)
@@ -129,6 +129,10 @@ func testInstaller(t *testing.T, when spec.G, it spec.S) {
 			Expect(err).ToNot(HaveOccurred())
 
 			httpmock.RegisterResponder("GET", "https://a-fake-url.com/bp.tgz", httpmock.NewStringResponder(200, string(contents)))
+
+			contents, err = ioutil.ReadFile(filepath.Join("testdata", "buildpack", "bpD.tgz"))
+			Expect(err).ToNot(HaveOccurred())
+			httpmock.RegisterResponder("GET", "https://a-fake-url.com/bpD.tgz", httpmock.NewStringResponder(200, string(contents)))
 
 		})
 

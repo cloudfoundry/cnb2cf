@@ -82,3 +82,9 @@ func WritePlatformDir(platformDir string, envs []string) error {
 	}
 	return nil
 }
+
+// See https://github.com/buildpacks/rfcs/blob/40babff3e4c062ebb00e669ee50ca649e9b81944/text/0022-client-side-buildpack-registry.md#how-it-works
+// "Note: id is the combination of two fields, ns and name. The / will be replaced by a _ in the filename"
+func SanitizeId(id string) string {
+	return strings.ReplaceAll(id, "/", "_")
+}

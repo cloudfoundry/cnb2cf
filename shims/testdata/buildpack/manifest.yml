@@ -22,6 +22,12 @@ dependencies:
     cf_stacks:
       - cflinuxfs2
       - cflinuxfs3
+  - name: this.paketo-buildpacks/bpD
+    version: 1.2.3
+    uri: https://a-fake-url.com/bpD.tgz
+    sha256: e7193f93d67bef3b5f4220da13c40c3248be403c35ed9833860795aa0f078585
+    cf_stacks:
+      - cflinuxfs3
   - name: lifecycle
     version: 1.0.3
     uri: https://a-fake-url.com/lifecycle-bundle.tgz

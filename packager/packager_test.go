@@ -1,6 +1,9 @@
 package packager_test
 
 import (
+	"crypto/sha256"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -91,6 +94,30 @@ func testUnitPackager(t *testing.T, when spec.G, it spec.S) {
 			sourcePath := filepath.Join("testdata", "cnb-source", "bad-source-multiple-cnbs")
 			_, err := packager.FindCNB(sourcePath)
 			Expect(err).To(MatchError("failed to find find cnb source: found multiple buildpack.toml files"))
+		})
+	})
+	when("BuildCNB", func() {
+		it("returns buildpack tgz and sha", func() {
+			sourcePath := filepath.Join("testdata", "cnb-source", "packagable")
+			badFileName := filepath.Join(tmpDir, "paketo-buildpacks_node-engine")
+			tarPath, sha, err := packager.BuildCNB(sourcePath, badFileName, true, "1.2.3")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(tarPath).To(BeAnExistingFile())
+
+			f, err := os.Open(tarPath)
+			Expect(err).NotTo(HaveOccurred())
+			defer f.Close()
+			h := sha256.New()
+			_, err = io.Copy(h, f)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(sha).To(Equal(fmt.Sprintf("%x", h.Sum(nil))))
+		})
+
+		it("returns error when outputDir is an invalid file name", func() {
+			sourcePath := filepath.Join("testdata", "cnb-source", "packagable")
+			badFileName := filepath.Join(tmpDir, "paketo-buildpacks/node-engine")
+			_, _, err := packager.BuildCNB(sourcePath, badFileName, true, "1.2.3")
+			Expect(err).To(MatchError(ContainSubstring("invalid outputDir")))
 		})
 	})
 }

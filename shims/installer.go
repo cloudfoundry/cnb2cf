@@ -75,7 +75,7 @@ func (c *CNBInstaller) DownloadCNBs(buildpack BuildpackTOML, installDir string) 
 			return []string{}, fmt.Errorf("unable to find a unique version of %s in the manifest", buildpack)
 		}
 
-		buildpackDest := filepath.Join(installDir, buildpack, versions[0])
+		buildpackDest := filepath.Join(installDir, SanitizeId(buildpack), versions[0])
 		if exists, err := libbuildpack.FileExists(buildpackDest); err != nil {
 			return []string{}, err
 		} else if exists {
