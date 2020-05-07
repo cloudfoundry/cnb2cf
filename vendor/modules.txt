@@ -39,7 +39,7 @@ github.com/cloudfoundry/libcfbuildpack/internal
 github.com/cloudfoundry/libcfbuildpack/layers
 github.com/cloudfoundry/libcfbuildpack/logger
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
-# github.com/cloudfoundry/packit v0.0.3
+# github.com/cloudfoundry/packit v0.0.6
 github.com/cloudfoundry/packit
 github.com/cloudfoundry/packit/cargo
 github.com/cloudfoundry/packit/cargo/jam/commands
