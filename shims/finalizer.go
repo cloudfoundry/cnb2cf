@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/cloudfoundry/cnb2cf/cloudnative"
-	"github.com/cloudfoundry/packit/pexec"
+	"github.com/paketo-buildpacks/packit/pexec"
 
 	"github.com/BurntSushi/toml"
 	"github.com/cloudfoundry/libbuildpack"

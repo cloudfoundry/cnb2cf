@@ -5,9 +5,10 @@
 package shims_test
 
 import (
-	pexec "github.com/cloudfoundry/packit/pexec"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	pexec "github.com/paketo-buildpacks/packit/pexec"
 )
 
 // MockEnvironment is a mock of Environment interface

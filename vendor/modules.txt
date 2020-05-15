@@ -21,10 +21,10 @@ github.com/buildpack/libbuildpack/stack
 # github.com/cheggaaa/pb/v3 v3.0.4
 github.com/cheggaaa/pb/v3
 github.com/cheggaaa/pb/v3/termutil
-# github.com/cloudfoundry/dagger v0.0.0-20200327193620-249a55908028
+# github.com/cloudfoundry/dagger v0.0.0-20200515185726-631f0d5088e0
 github.com/cloudfoundry/dagger
 github.com/cloudfoundry/dagger/utils
-# github.com/cloudfoundry/libbuildpack v0.0.0-20200327210741-300aba315f40
+# github.com/cloudfoundry/libbuildpack v0.0.0-20200515185320-c6e2c6273a97
 github.com/cloudfoundry/libbuildpack
 github.com/cloudfoundry/libbuildpack/ansicleaner
 github.com/cloudfoundry/libbuildpack/cutlass
@@ -39,20 +39,13 @@ github.com/cloudfoundry/libcfbuildpack/internal
 github.com/cloudfoundry/libcfbuildpack/layers
 github.com/cloudfoundry/libcfbuildpack/logger
 github.com/cloudfoundry/libcfbuildpack/packager/cnbpackager
-# github.com/cloudfoundry/packit v0.0.7
-github.com/cloudfoundry/packit
-github.com/cloudfoundry/packit/cargo
-github.com/cloudfoundry/packit/cargo/jam/commands
-github.com/cloudfoundry/packit/internal
-github.com/cloudfoundry/packit/pexec
-github.com/cloudfoundry/packit/scribe
 # github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484
 github.com/elazarl/goproxy
 # github.com/fatih/color v1.9.0
 github.com/fatih/color
 # github.com/golang/mock v1.4.3
 github.com/golang/mock/gomock
-# github.com/golang/protobuf v1.3.5
+# github.com/golang/protobuf v1.4.2
 github.com/golang/protobuf/proto
 # github.com/google/go-github v17.0.0+incompatible
 github.com/google/go-github/github
@@ -108,6 +101,13 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
+# github.com/paketo-buildpacks/packit v0.0.9
+github.com/paketo-buildpacks/packit
+github.com/paketo-buildpacks/packit/cargo
+github.com/paketo-buildpacks/packit/cargo/jam/commands
+github.com/paketo-buildpacks/packit/internal
+github.com/paketo-buildpacks/packit/pexec
+github.com/paketo-buildpacks/packit/scribe
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/rakyll/statik v0.1.7
@@ -123,7 +123,7 @@ github.com/tidwall/match
 github.com/tidwall/pretty
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
-# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+# golang.org/x/net v0.0.0-20200513185701-a91f0712d120
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -158,7 +158,7 @@ golang.org/x/text/transform
 # golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/appengine v1.6.5
+# google.golang.org/appengine v1.6.6
 google.golang.org/appengine
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/app_identity
@@ -169,9 +169,37 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
+# google.golang.org/protobuf v1.23.0
+google.golang.org/protobuf/encoding/prototext
+google.golang.org/protobuf/encoding/protowire
+google.golang.org/protobuf/internal/descfmt
+google.golang.org/protobuf/internal/descopts
+google.golang.org/protobuf/internal/detrand
+google.golang.org/protobuf/internal/encoding/defval
+google.golang.org/protobuf/internal/encoding/messageset
+google.golang.org/protobuf/internal/encoding/tag
+google.golang.org/protobuf/internal/encoding/text
+google.golang.org/protobuf/internal/errors
+google.golang.org/protobuf/internal/fieldnum
+google.golang.org/protobuf/internal/fieldsort
+google.golang.org/protobuf/internal/filedesc
+google.golang.org/protobuf/internal/filetype
+google.golang.org/protobuf/internal/flags
+google.golang.org/protobuf/internal/genname
+google.golang.org/protobuf/internal/impl
+google.golang.org/protobuf/internal/mapsort
+google.golang.org/protobuf/internal/pragma
+google.golang.org/protobuf/internal/set
+google.golang.org/protobuf/internal/strs
+google.golang.org/protobuf/internal/version
+google.golang.org/protobuf/proto
+google.golang.org/protobuf/reflect/protoreflect
+google.golang.org/protobuf/reflect/protoregistry
+google.golang.org/protobuf/runtime/protoiface
+google.golang.org/protobuf/runtime/protoimpl
 # gopkg.in/fsnotify.v1 v1.4.7
 gopkg.in/fsnotify.v1
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/yaml.v2 v2.2.8
+# gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
