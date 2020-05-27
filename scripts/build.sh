@@ -29,7 +29,7 @@ COMPILE
 
         export PATH="${PATH}:$(go env GOPATH)/bin"
         statik --src=./template -f --include '*'
-        go build -mod=vendor -o build/cnb2cf main.go
+        go build -o build/cnb2cf main.go
     popd > /dev/null || return
 }
 
