@@ -5,11 +5,9 @@ function main() {
     pushd "$( dirname "${BASH_SOURCE[0]}" )/.." > /dev/null || return
         ./scripts/build.sh
 
-        go mod vendor
-
         set +e
             local exit_code
-            go test -timeout 0 -mod=vendor ./integration/... -v -run Integration
+            go test -timeout 0 ./integration/... -v -run Integration
             exit_code="${?}"
 
             if [[ "${exit_code}" != "0" ]]; then

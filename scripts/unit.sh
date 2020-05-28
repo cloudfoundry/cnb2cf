@@ -2,10 +2,9 @@
 set -uo pipefail
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
-go mod vendor
 
 echo "Run CNB2CF Unit Tests"
-go test -mod=vendor ./... -v -run Unit
+go test ./... -v -run Unit
 exit_code=$?
 
 if [ "$exit_code" != "0" ]; then
