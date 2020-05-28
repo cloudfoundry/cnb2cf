@@ -9,16 +9,14 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/golang/mock v1.4.3
-	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/subcommands v1.2.0
 	github.com/jarcoal/httpmock v1.0.5
 	github.com/onsi/ginkgo v1.12.1
-	github.com/onsi/gomega v1.10.0
+	github.com/onsi/gomega v1.10.1
 	github.com/paketo-buildpacks/packit v0.0.10
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/sclevine/spec v1.4.0
-	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
