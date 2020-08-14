@@ -28,6 +28,7 @@ github.com/buildpack/libbuildpack v1.25.11/go.mod h1:Fb1Eg3vT+B3i5l46aF6WsW7naCA
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cheggaaa/pb/v3 v3.0.4 h1:QZEPYOj2ix6d5oEg63fbHmpolrnNiwjUsk+h74Yt4bM=
 github.com/cheggaaa/pb/v3 v3.0.4/go.mod h1:7rgWxLrAUcFMkvJuv09+DYi7mMUYi8nO9iOWcvGJPfw=
+github.com/cheggaaa/pb/v3 v3.0.5/go.mod h1:X1L61/+36nz9bjIsrDU52qHKOQukUQe2Ge+YvGuquCw=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
@@ -182,6 +183,8 @@ github.com/paketo-buildpacks/packit v0.2.4 h1:G6ghPFxv5Flmdt1+wbnrdbMl/M1cHwM8FT
 github.com/paketo-buildpacks/packit v0.2.4/go.mod h1:b40wtWWAcgB47+vYGDD9KKhzOtBjI8KPqGxwGvV+XNs=
 github.com/paketo-buildpacks/packit v0.2.5 h1:owFBBkMPRYVU9tvF+Ao7/GfZAOEJQwq/CAXDJFIRWyw=
 github.com/paketo-buildpacks/packit v0.2.5/go.mod h1:b40wtWWAcgB47+vYGDD9KKhzOtBjI8KPqGxwGvV+XNs=
+github.com/paketo-buildpacks/packit v0.2.6 h1:+GZSjkt+qmTyux98dr5yYM4DFdThug2FojGvGx1y4Go=
+github.com/paketo-buildpacks/packit v0.2.6/go.mod h1:75NgEq9XQGt+6n/VF8hR0wB8rTGeLmRmbTbhhL/zUow=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
