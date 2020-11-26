@@ -18,7 +18,7 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/sclevine/spec v1.4.0
 	google.golang.org/appengine v1.6.6 // indirect
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 go 1.13
