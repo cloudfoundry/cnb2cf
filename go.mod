@@ -10,7 +10,7 @@ require (
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/golang/mock v1.4.4
 	github.com/google/subcommands v1.2.0
-	github.com/jarcoal/httpmock v1.0.7
+	github.com/jarcoal/httpmock v1.0.8
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.4
 	github.com/paketo-buildpacks/packit v0.6.1
