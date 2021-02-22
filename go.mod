@@ -8,7 +8,7 @@ require (
 	github.com/cloudfoundry/libcfbuildpack v1.91.23
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/elazarl/goproxy/ext v0.0.0-20191011121108-aa519ddbe484 // indirect
-	github.com/golang/mock v1.4.4
+	github.com/golang/mock v1.5.0
 	github.com/google/subcommands v1.2.0
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/onsi/ginkgo v1.15.0
